@@ -1,2 +1,2 @@
-# akhilvreddy.github.io
-My personal portfolio website.
+# My personal portfolio website
+Go check it out [here](https://akhilvreddy.github.io/) 🎀
