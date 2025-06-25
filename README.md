@@ -1,2 +1,0 @@
-# akhilvreddy.github.io
-blog

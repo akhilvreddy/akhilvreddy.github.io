@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Word2vec on Akhil’s Blog</title>
+    <link>https://akhilreddy.github.io/tags/word2vec/</link>
+    <description>Recent content in Word2vec on Akhil’s Blog</description>
+    <generator>Hugo -- 0.147.8</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 24 Jun 2025 18:12:56 -0400</lastBuildDate>
+    <atom:link href="https://akhilreddy.github.io/tags/word2vec/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Why I think Tesla&#39;s Robotaxi will do laps on Waymo</title>
+      <link>https://akhilreddy.github.io/posts/robotaxi-vs-waymo/</link>
+      <pubDate>Tue, 24 Jun 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/robotaxi-vs-waymo/</guid>
+      <description>&lt;p&gt;In the coming years, I have a feeling that Robotaxi is going to scale like Uber whereas Waymo will scale like Lyft (if even that)&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Deploying a production grade ML model: a full walkthrough</title>
+      <link>https://akhilreddy.github.io/posts/deploying-model/</link>
+      <pubDate>Sat, 14 Jun 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/deploying-model/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Beyond Accuracy: Why Most ML Models Fail in Production (and what real-world ML looks like)</title>
+      <link>https://akhilreddy.github.io/posts/real-world-models/</link>
+      <pubDate>Fri, 06 Jun 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/real-world-models/</guid>
+      <description>&lt;p&gt;Divergence, drift, jail-breaking, and the incoming feature stream flipping almost instantly can silently kill a model in production.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Designing AlphaTicTacToe (and crawling towards AlphaTicTacToeZero)</title>
+      <link>https://akhilreddy.github.io/posts/alpha-tic-tac-toe/</link>
+      <pubDate>Tue, 20 May 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/alpha-tic-tac-toe/</guid>
+      <description>&lt;p&gt;AlphaGo blew my mind and AlphaGoZero was the cherry on top. Recreating this in a simple environment was a long term dream of mine&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Mamba (and it&#39;s peers) aren&#39;t replacing Attention anytime soon</title>
+      <link>https://akhilreddy.github.io/posts/mamba-vs-attention/</link>
+      <pubDate>Thu, 03 Apr 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/mamba-vs-attention/</guid>
+      <description>&lt;p&gt;In my opinion, nothing is more parallelizable than Attention and beating that ability is an uphill battle. Mamba (or similar architectures) just aren&amp;rsquo;t doing that yet&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Vision Models are truly underrated</title>
+      <link>https://akhilreddy.github.io/posts/vision-models/</link>
+      <pubDate>Mon, 10 Mar 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/vision-models/</guid>
+      <description>&lt;p&gt;Everyone knows that models can speak really well now (GPT4o, LLama3, etc.) but few recognize the capabilities of how good the vision models are nowadays&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Building Transformers and Multi-head attention from scratch</title>
+      <link>https://akhilreddy.github.io/posts/attention-from-scratch/</link>
+      <pubDate>Mon, 03 Mar 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/attention-from-scratch/</guid>
+      <description>&lt;p&gt;Everyone knows that models can speak really well now (GPT4o, LLama3, etc.) but few recognize the capabilities of how good the vision models are nowadays&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>How did we get to transformers? The rise of the Attention Mechanims</title>
+      <link>https://akhilreddy.github.io/posts/attention-beginnings/</link>
+      <pubDate>Fri, 28 Feb 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/attention-beginnings/</guid>
+      <description>&lt;p&gt;Attention is really cool and useful, what just like any great invention, there were some problems people were facing and it was made out of that. In this post, I aim to dive into what birthed attention&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Crypto&#39;s asymmetric upside: HODL Ethereum for the next 20 years</title>
+      <link>https://akhilreddy.github.io/posts/crypto-upside/</link>
+      <pubDate>Fri, 14 Feb 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/crypto-upside/</guid>
+      <description>&lt;p&gt;I&amp;rsquo;ve been debating whether it&amp;rsquo;s a smart idea to slowly DCA into BTC/ETH and if that will ever pay off in the future. I want to see if crypto actually has a chance down the line&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Word2Vec from scratch: Intuition to Implementation</title>
+      <link>https://akhilreddy.github.io/posts/word2vec-scratch/</link>
+      <pubDate>Fri, 10 Jan 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/word2vec-scratch/</guid>
+      <description>&lt;p&gt;Q(&amp;ldquo;king&amp;rdquo;) - Q(&amp;ldquo;man&amp;rdquo;) + Q(&amp;ldquo;woman&amp;rdquo;) ≈ Q(&amp;ldquo;queen&amp;rdquo;) is beautiful but the approach we take to get there is even cooler&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>What are Xavier and He initializations? Why do they (almost always) help our eval?</title>
+      <link>https://akhilreddy.github.io/posts/initialization/</link>
+      <pubDate>Sat, 04 Jan 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilreddy.github.io/posts/initialization/</guid>
+      <description>&lt;p&gt;Both of these are things I&amp;rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
