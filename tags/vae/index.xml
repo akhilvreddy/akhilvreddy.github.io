@@ -2,17 +2,17 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Vae on Akhil’s Blog</title>
-    <link>https://akhilreddy.github.io/tags/vae/</link>
+    <link>https://akhilvreddy.github.io/tags/vae/</link>
     <description>Recent content in Vae on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
     <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="https://akhilreddy.github.io/tags/vae/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://akhilvreddy.github.io/tags/vae/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Why VAEs Changed the Way I Think About Modeling</title>
-      <link>https://akhilreddy.github.io/posts/vae/</link>
+      <link>https://akhilvreddy.github.io/posts/vae/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      <guid>https://akhilreddy.github.io/posts/vae/</guid>
+      <guid>https://akhilvreddy.github.io/posts/vae/</guid>
       <description>&lt;p&gt;VAEs were my own introduction to machine learning and I was beyond confused how regression becomes this down the line; I want to dive into exactly that - going from approximating slope to representations.&lt;/p&gt;</description>
     </item>
   </channel>

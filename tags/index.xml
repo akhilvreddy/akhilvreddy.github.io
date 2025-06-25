@@ -2,45 +2,45 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Tags on Akhil’s Blog</title>
-    <link>https://akhilreddy.github.io/tags/</link>
+    <link>https://akhilvreddy.github.io/tags/</link>
     <description>Recent content in Tags on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 24 Jun 2025 18:12:56 -0400</lastBuildDate>
-    <atom:link href="https://akhilreddy.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://akhilvreddy.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Embeddings</title>
-      <link>https://akhilreddy.github.io/tags/embeddings/</link>
+      <link>https://akhilvreddy.github.io/tags/embeddings/</link>
       <pubDate>Tue, 24 Jun 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilreddy.github.io/tags/embeddings/</guid>
+      <guid>https://akhilvreddy.github.io/tags/embeddings/</guid>
       <description></description>
     </item>
     <item>
       <title>Nlp</title>
-      <link>https://akhilreddy.github.io/tags/nlp/</link>
+      <link>https://akhilvreddy.github.io/tags/nlp/</link>
       <pubDate>Tue, 24 Jun 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilreddy.github.io/tags/nlp/</guid>
+      <guid>https://akhilvreddy.github.io/tags/nlp/</guid>
       <description></description>
     </item>
     <item>
       <title>Word2vec</title>
-      <link>https://akhilreddy.github.io/tags/word2vec/</link>
+      <link>https://akhilvreddy.github.io/tags/word2vec/</link>
       <pubDate>Tue, 24 Jun 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilreddy.github.io/tags/word2vec/</guid>
+      <guid>https://akhilvreddy.github.io/tags/word2vec/</guid>
       <description></description>
     </item>
     <item>
       <title>Machine Learning</title>
-      <link>https://akhilreddy.github.io/tags/machine-learning/</link>
+      <link>https://akhilvreddy.github.io/tags/machine-learning/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      <guid>https://akhilreddy.github.io/tags/machine-learning/</guid>
+      <guid>https://akhilvreddy.github.io/tags/machine-learning/</guid>
       <description></description>
     </item>
     <item>
       <title>Vae</title>
-      <link>https://akhilreddy.github.io/tags/vae/</link>
+      <link>https://akhilvreddy.github.io/tags/vae/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      <guid>https://akhilreddy.github.io/tags/vae/</guid>
+      <guid>https://akhilvreddy.github.io/tags/vae/</guid>
       <description></description>
     </item>
   </channel>
