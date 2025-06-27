@@ -104,8 +104,10 @@
       <link>https://akhilvreddy.github.io/tooling/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/tooling/</guid>
-      <description>&lt;p&gt;Ciyahh cacky&lt;/p&gt;
-&lt;p&gt;dont know how&lt;/p&gt;</description>
+      <description>&lt;p&gt;After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on. They’re the ones that actually make my workflow fast, smooth, and fun.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h3 id=&#34;0-development-environment&#34;&gt;0) Development Environment &lt;p&gt;&lt;p&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Machine&lt;/strong&gt;: I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train a good amount of models locally if needed and enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop + Cursor + FastAPI + Docker + a bunch of browser tabs without my machine slowing down at all.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
