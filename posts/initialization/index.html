@@ -7,7 +7,7 @@
 <meta name="robots" content="index, follow">
 <title>What are Xavier and He initializations? Why do they (almost always) help our eval? | Akhil’s Blog</title>
 <meta name="keywords" content="word2vec, embeddings, nlp">
-<meta name="description" content="Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood">
+<meta name="description" content="Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
 <meta name="author" content="ML Theory &#43; Code">
 <link rel="canonical" href="https://akhilvreddy.github.io/posts/initialization/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -58,7 +58,7 @@
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/initialization/">
   <meta property="og:site_name" content="Akhil’s Blog">
   <meta property="og:title" content="What are Xavier and He initializations? Why do they (almost always) help our eval?">
-  <meta property="og:description" content="Both of these are things I’ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood">
+  <meta property="og:description" content="Both of these are things I’ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
@@ -69,7 +69,7 @@
     <meta property="article:tag" content="Nlp">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="What are Xavier and He initializations? Why do they (almost always) help our eval?">
-<meta name="twitter:description" content="Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood">
+<meta name="twitter:description" content="Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
 
 
 <script type="application/ld+json">
@@ -98,12 +98,12 @@
   "@type": "BlogPosting",
   "headline": "What are Xavier and He initializations? Why do they (almost always) help our eval?",
   "name": "What are Xavier and He initializations? Why do they (almost always) help our eval?",
-  "description": "Both of these are things I\u0026rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood\n",
+  "description": "Both of these are things I\u0026rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.",
   "keywords": [
     "word2vec", "embeddings", "nlp"
   ],
-  "articleBody": "Both of these are things I’ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood\n",
-  "wordCount" : "29",
+  "articleBody": "Deep neural networks suffer from vanishing or exploding activations and gradients, especially as the number of layers increases. This makes it hard for the model to learn, because gradients either:\nBecome tiny -\u003e layers don’t learn -\u003e training stalls Become massive -\u003e weights blow up -\u003e unstable training (and your compute gets shot) This issue happens in both the forward pass and the backward pass.\nIn the forward pass,\nIf activations shrink layer after layer (because of ReLU/Dense layers with small weights), the signal dies out -\u003e vanishing activations If weights are too large, activations can grow layer by layer -\u003e exploding activations In the backward pass,\nBackprop multiplies gradients through the layers via the chain rule If each gradient term is \u003c 1, they shrink exponentially -\u003e vanishing gradients if \u003e 1, they grow -\u003e exploding gradients On top of this, if you choose tanh as an activation function or have a final prediction head that uses a sigmoid, the flat tails of these functions will only exacerbate this issue (small derivative regions).\nIf we look at it from a mathematical standpoint:\nLet’s say suppose we have layers like:\n$$ h^{(l)} = W^{(l)} h^{(l-1)} $$\nThe variance of activations becomes: $$ Var(h^{(l)}) = Var(W^{(l)}) * Var(h^{(l-1)}) $$\nIf ( \\text{Var}(W) \\ne 1 ), this compounding effect leads to vanishing or exploding activations. Hence, our goal is to initialize weights so that: $$ \\text{Var}(h^{(l)}) = \\text{Var}(h^{(l-1)}) $$\n",
+  "wordCount" : "237",
   "inLanguage": "en",
   "datePublished": "2025-01-04T18:12:56-04:00",
   "dateModified": "2025-01-04T18:12:56-04:00",
@@ -125,6 +125,13 @@
   }
 }
 </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body);"
+          data-delimiters='[{"left":"$$","right":"$$","display":true},{"left":"\\(","right":"\\)","display":false}]'>
+  </script>
+
 </head>
 
 <body class="" id="top">
@@ -226,11 +233,43 @@
     <h1 class="post-title entry-hint-parent">
       What are Xavier and He initializations? Why do they (almost always) help our eval?
     </h1>
-    <div class="post-meta"><span title='2025-01-04 18:12:56 -0400 -0400'>January 4, 2025</span>&nbsp;·&nbsp;1 min&nbsp;·&nbsp;ML Theory &#43; Code
+    <div class="post-meta"><span title='2025-01-04 18:12:56 -0400 -0400'>January 4, 2025</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;ML Theory &#43; Code
 
 </div>
   </header> 
-  <div class="post-content"><p>Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood</p>
+  <div class="post-content"><p>Deep neural networks suffer from vanishing or exploding activations and gradients, especially as the number of layers increases. This makes it hard for the model to learn, because gradients either:</p>
+<ol>
+<li>Become tiny -&gt; layers don&rsquo;t learn -&gt; training stalls</li>
+<li>Become massive -&gt; weights blow up -&gt; unstable training (and your compute gets shot)</li>
+</ol>
+<p>This issue happens in both the forward pass and the backward pass.</p>
+<p>In the forward pass,</p>
+<ul>
+<li>If activations shrink layer after layer (because of ReLU/Dense layers with small weights), the signal dies out -&gt; vanishing activations</li>
+<li>If weights are too large, activations can grow layer by layer -&gt; exploding activations</li>
+</ul>
+<p>In the backward pass,</p>
+<ul>
+<li>Backprop multiplies gradients through the layers via the chain rule</li>
+<li>If each gradient term is &lt; 1, they shrink exponentially -&gt; vanishing gradients</li>
+<li>if &gt; 1, they grow -&gt; exploding gradients</li>
+</ul>
+<p>On top of this, if you choose tanh as an activation function or have a final prediction head that uses a sigmoid, the flat tails of these functions will only exacerbate this issue (small derivative regions).</p>
+<p>If we look at it from a mathematical standpoint:</p>
+<p>Let&rsquo;s say suppose we have layers like:</p>
+<p>$$
+h^{(l)} = W^{(l)} h^{(l-1)}
+$$</p>
+<p>The variance of activations becomes:
+$$
+Var(h^{(l)}) = Var(W^{(l)}) * Var(h^{(l-1)})
+$$</p>
+<p>If ( \text{Var}(W) \ne 1 ), this compounding effect leads to vanishing or exploding activations.
+Hence, our goal is to initialize weights so that:
+$$
+\text{Var}(h^{(l)}) = \text{Var}(h^{(l-1)})
+$$</p>
+
 
   </div>
 

@@ -5,9 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Deploying a production grade ML model: a full walkthrough | Akhil’s Blog</title>
-<meta name="keywords" content="word2vec, embeddings, nlp">
-<meta name="description" content="I&rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production">
+<title>Deploying a toy ML model to production | Akhil’s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="I&rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production - I wanted to document what usually happens after training.">
 <meta name="author" content="ML Systems">
 <link rel="canonical" href="https://akhilvreddy.github.io/posts/deploying-model/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -57,19 +57,16 @@
     </style>
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/deploying-model/">
   <meta property="og:site_name" content="Akhil’s Blog">
-  <meta property="og:title" content="Deploying a production grade ML model: a full walkthrough">
-  <meta property="og:description" content="I’ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production">
+  <meta property="og:title" content="Deploying a toy ML model to production">
+  <meta property="og:description" content="I’ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production - I wanted to document what usually happens after training.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2025-06-14T18:12:56-04:00">
     <meta property="article:modified_time" content="2025-06-14T18:12:56-04:00">
-    <meta property="article:tag" content="Word2vec">
-    <meta property="article:tag" content="Embeddings">
-    <meta property="article:tag" content="Nlp">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Deploying a production grade ML model: a full walkthrough">
-<meta name="twitter:description" content="I&rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production">
+<meta name="twitter:title" content="Deploying a toy ML model to production">
+<meta name="twitter:description" content="I&rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production - I wanted to document what usually happens after training.">
 
 
 <script type="application/ld+json">
@@ -86,7 +83,7 @@
     {
       "@type": "ListItem",
       "position":  2 ,
-      "name": "Deploying a production grade ML model: a full walkthrough",
+      "name": "Deploying a toy ML model to production",
       "item": "https://akhilvreddy.github.io/posts/deploying-model/"
     }
   ]
@@ -96,14 +93,14 @@
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "Deploying a production grade ML model: a full walkthrough",
-  "name": "Deploying a production grade ML model: a full walkthrough",
-  "description": "I\u0026rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production\n",
+  "headline": "Deploying a toy ML model to production",
+  "name": "Deploying a toy ML model to production",
+  "description": "I\u0026rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production - I wanted to document what usually happens after training.",
   "keywords": [
-    "word2vec", "embeddings", "nlp"
+    
   ],
-  "articleBody": "I’ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production\n",
-  "wordCount" : "22",
+  "articleBody": "In true machine learning engineering, a good chunk comes before training but also a good amount happens after training as well. Serving and deploying the model actually let’s users touch your model instead of you having to send the .pth file, someone loading it, and then finally calling with torch.no_grad().\nHere’s the high-level game plan:\n1) Trying to attack a real-problem Profanity detection is not that hard to train and anyone can hit it the API with any string. We would also only need a tiny corpus and having binary labels keeps the training loop pretty simple so that we can actually focus on the production part instead of drowning in things like feature engineering or other deep learning headaches.\nThe dataset I want to use is the Davidson 2017 “Hate/Offensive” Tweets set which has around ~25000 balanced, single-line tweets.\nSince it’s binary we can map:\nhate + offensive speech -\u003e 1 anything else -\u003e 0 2) Train \u0026 lock the artifact We’ll run a simple training loop (we can aim for a decent F1 but that’s not the main priority here) and save the model as a .joblib.\n3) Wrapping it in an API This would be the most important part. I want to use FastAPI and BentoML; we’ll use FastAPI for the clean routing and request handling and BentoML for model management, packaging, and scalable deployment.\nI’ve seen people only use FastAPI but I feel that you don’t get full model versioning support or multi-model serving if you skip BentoML.\n4) Package it I’ll show the exmaple of using both (dockerfile and bento build) to create an image in a registry.\n5) Shipping We have a couple of options: Fly.io (heroku but for docker), Northflank (PaaS built for containers \u0026 microservices), ECS (reliable but I don’t want to pay), and K8s (overkill for this)\nFly.io seems the most viable one here because it has the least amount of overhead.\n6) Wire CI/CD We’ll use GitHub actions to build our image and deploy on every main push.\n7) Observability We’ll implement logs, latency, traffic, model-drift hooks\n8) Closing steps A/B rollout, feature flags, retraining loop\nLet’s get started.\n1) Pretraining \u0026 Training Deep learning is definitely overkill here so I wanted to use Term Frequency - Inverse Document Frequency along with Logistic Regression using sklearn. Essentially, TF-IDF gives high scores to words that are common in a document but rare across teh dataset, which usually carry the most signal.\nThis method is great for spam detection, product categorization based on descriptions, basic sentiment analysis, and in our case, profanity/toxic comment classification.\nHere is what our loop would look like after we import our data:\ntrain.py:\nimport pandas as pd, joblib from sklearn.model_selection import train_test_split from sklearn.feature_extraction.text import TfidfVectorizer from sklearn.linear_model import LogisticRegression from sklearn.pipeline import Pipeline df = pd.read_csv(\"tweets.csv\") # columns: text, label X_train, X_val, y_train, y_val = train_test_split( df[\"text\"], df[\"label\"], test_size=0.2, random_state=42 ) pipeline = Pipeline([ (\"tfidf\", TfidfVectorizer(min_df=3, ngram_range=(1,2))), (\"clf\", LogisticRegression(max_iter=1000)) ]) pipeline.fit(X_train, y_train) print(\"val-acc:\", pipeline.score(X_val, y_val)) joblib.dump(pipeline, \"profanity.joblib\") So we now have our model saved as profanity.joblib and we can proceed to putting this to production now. In the repository I’ve added eval metrics like F1 and confusion matrix but I don’t think they are that important in this case.\n2) Serving I’ll start with showing just how to use FastAPI and then will introduce BentoML to show how it supercharges your workflow.\nFastAPI We would have to write a python script that exposes our API and then a dockerfile to serve.\nservice.py:\nfrom fastapi import FastAPI from pydantic import BaseModel import joblib model = joblib.load(\"profanity.joblib\") app = FastAPI() class Req(BaseModel): text: str @app.post(\"/predict\") def predict(r: Req): proba = model.predict_proba([r.text])[0][1] return {\"is_profane\": proba \u003e 0.5, \"confidence\": proba} dockerfile:\nFROM python:3.11-slim WORKDIR /app COPY requirements.txt . \u0026\u0026 pip install -r requirements.txt COPY . . CMD [\"uvicorn\", \"service:app\", \"--host\", \"0.0.0.0\", \"--port\", \"8000\"] Not bad right? Here’s how BentoML simplifies it though:\nservice.py:\nimport bentoml from bentoml.io import JSON import joblib; pipe = joblib.load(\"profanity.joblib\") model_ref = bentoml.sklearn.save_model(\"profanity_detector\", pipe) svc = bentoml.Service( \"profanity_api\", runners=[model_ref.to_runner()], ) @svc.api(input=JSON(), output=JSON()) def predict(payload): text = payload[\"text\"] proba = svc.runners.profanity_detector.predict_proba.run([text])[0][1] return {\"is_profane\": proba \u003e 0.5, \"confidence\": proba} Serving locally:\nbentoml serve service.py:svc Packaging:\nbentoml build bentoml containerize profanity_api:latest docker run -p 3000:3000 profanity_api:latest Bento gives you healthz and metrics endpoints out the box. healthz is useful for when load balancers can ping to check if your service is healthy or needs to be restarted. metrics is a prometheus-compatible endpoint which exposes internal stats like request counts, response times, errors, memory usage, and latency histograms. This is really useful if you want to host your own observability serivce.\nWithout BentoML, you’d have to manually implement these endpoints which can be gruesome. Bento takes care of all of these and you instantly have them production-ready.\n3) Continuous Integration \u0026 Continous Deployment name: Deploy ML endpoint on: push: branches: [main] workflow_dispatch: {} jobs: build-push: runs-on: ubuntu-latest permissions: contents: read packages: write steps: - uses: actions/checkout@v4 - uses: bentoml/setup-bentoml-action@v1 with: python-version: \"3.11\" cache: pip - name: Build Bento run: bentoml build - name: Login to GHCR uses: docker/login-action@v3 with: registry: ghcr.io username: ${{ github.repository_owner }} password: ${{ secrets.GITHUB_TOKEN }} - name: Containerize \u0026 push uses: bentoml/containerize-push-action@v1 with: bento-tag: profanity_api:latest push: true tags: ghcr.io/${{ github.repository_owner }}/profanity-api:latest - name: Install flyctl uses: superfly/flyctl-actions/setup-flyctl@master - name: Deploy to Fly.io run: flyctl deploy --image ghcr.io/${{ github.repository_owner }}/profanity-api:latest --remote-only env: FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }} Here’s the pipeline flow:\nPush to main (from wherever you are developing from, or a PR) Checkout your current repository GitHub builds Bento Container gets built + pushed to GHRC flyctl deploy pulls from GHRC and deploys globally 4) Observability With BentoML, every service already exposes /metrics in Prometheus format without any extra code.\nWe can easily see what it is returning with the following:\ncurl http://localhost:3000/metrics | head # HELP http_request_duration_seconds ... # TYPE http_request_duration_seconds histogram All this data is already in prometheus format, which makes it super easy down the line.\nWe can quickly spin up Prom + Grafana:\ndocker compose up -d prometheus grafana And now we have observability baked in as well 🤑\nHere’s the overall flow:\nBentoML exposes /metrics Prometheus scrapes + stores time-series data Grafana queries Prom + visualizes insights This obviously changes with the scale of your application - I would assume Youtube’s RecSys and other tools would have more sophisticated versions of their observability. But at it’s core they are measure ofr the same thing - how their infrastructure is doing (monitoring CPU, memory, p95 latency), how the application is behaving (2xx/4xx/5xx counts, request time, queue depth), and finally the inputs to the model (mean prob, class skew, confidence histograms).\n5) Model \u0026 Data-Drift Monitoring Have you ever heard the term that ML models can silently fail in production? This happens when the input data changes and our model isn’t prepared for that.\nIn our case of the profanity checking model, that could happen if people could start saying new words / slurs that our model just has never seen before (the slurs that people say today are probably wildly differnet than what people used to say back in 2010).\nA nightly cron + Evidently AI gives you guardrails against this happening.\nnightly_check.py:\nfrom evidently import ColumnMapping from evidently.report import Report from evidently.metric_preset import DataDriftPreset baseline = pd.read_parquet(\"2025-06-01.parquet\") latest = pd.read_parquet(\"2025-06-28.parquet\") rpt = Report(metrics=[DataDriftPreset()]) rpt.run(reference_data=baseline, current_data=latest, column_mapping=ColumnMapping(target=None)) rpt.save_html(\"drift.html\") A lot of people then take this drift.html and store in in S3 which Grafana then embeds so product managers / non-technical people can see without having to ssh into the specific machine.\n6) Versioning, Rollbacks, Deployment Strategies This part is very similar to it’s software counterpart.\n1. Model Versioning Every time a new model is trained, we should treat it like a software artifact. We should go ahead and save it with a unique version ID along with some other metadata (training date, dataset version, training script hash, val \u0026 test set metrics (accuracy, F1, drift, etc.)).\nVersion tracking: MLflow, Weights \u0026 Biases, BentoML Storage: S3, GCS, MinIO This is very useful because we always know which model is in production, we have the ability to compare and debug past verisons, and reproduce behavior in production from months ago.\n2. Rollbacks Even if a new model looks promising in UAT with decent F1 scores, it can suddenly perform poorly in prod (drops in accuracy, increased latency, or user complaints).\nTo be able to roll back a model instantly, we can just rebind the production endpoint to an older model or roll back the image tag if it was hosted as a Docker container.\nThis can easily be automated by setting up triggers from Prometheus + Grafana + AlertManager which can go and trigger previous versions through CI/CD pipelines.\n3. Deployment Strategies Blue-Green: Deploy the new model to a parallel env while the old one is still serving. After validation, switch all traffic over. Canary: Slowly roll out the new model to a small subset of users (5-10%) while monitoring for issues. If things look good, gradually increase traffic. A/B testing: Route users randomly to different model versions (A vs B) and compare performance (CTR, conversions, etc.) Best for evaluating new models based on real user outcomes. Multi-Armed Bandit (MAB): A smarter version of A/B testing; we are going to route more traffic to the better-performing model as results come in. Dynamically allocating traffic based on current performance. Shadow Deployment (my most favorite, tradeoff is that you are wasting compute): Spin up the new model but send real production traffic to the both models (old and new) without returning results from the new model to users. It shadows the main model, allowing you to compare logs and behavior. 7) Automated Retraining Automated retraining is how we keep our model fresh as the world changes (data drift, concept drift, new patterns, etc.)\nWe can setup a pipeline to run on a schedule to:\nPull new data Clean + process it Retrain the model Evaluate it Deploy it (using one of the above strategies, if it beats current prod model) We can think of this like a “self-updating model factory”. It’s essential for serving ML models because one thing that is big today could be completely different tomorrow.\nBecause ML is so data intensive and can have “silent failures”, we have many things that we have to do such that these models can be deployed well in production. We see another tradeoff that since machine learning is now the “core” to many applications, there are a lot of layers that we need to have in place so that we can keep it running smoothly.\nTake a look at this repository to see the full code.\n",
+  "wordCount" : "1778",
   "inLanguage": "en",
   "datePublished": "2025-06-14T18:12:56-04:00",
   "dateModified": "2025-06-14T18:12:56-04:00",
@@ -224,21 +221,247 @@
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      Deploying a production grade ML model: a full walkthrough
+      Deploying a toy ML model to production
     </h1>
-    <div class="post-meta"><span title='2025-06-14 18:12:56 -0400 EDT'>June 14, 2025</span>&nbsp;·&nbsp;1 min&nbsp;·&nbsp;ML Systems
+    <div class="post-meta"><span title='2025-06-14 18:12:56 -0400 EDT'>June 14, 2025</span>&nbsp;·&nbsp;9 min&nbsp;·&nbsp;ML Systems
 
 </div>
   </header> 
-  <div class="post-content"><p>I&rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production</p>
+  <div class="post-content"><p>In true machine learning engineering, a good chunk comes before training but also a good amount happens after training as well. Serving and deploying the model actually let&rsquo;s users touch your model instead of you having to send the .pth file, someone loading it, and then finally calling with torch.no_grad().</p>
+<p>Here&rsquo;s the high-level game plan:</p>
+<h3 id="1-trying-to-attack-a-real-problem">1) Trying to attack a real-problem<a hidden class="anchor" aria-hidden="true" href="#1-trying-to-attack-a-real-problem">#</a></h3>
+<p>Profanity detection is not that hard to train and anyone can hit it the API with any string. We would also only need a tiny corpus and having binary labels keeps the training loop pretty simple so that we can actually focus on the production part instead of drowning in things like feature engineering or other deep learning headaches.</p>
+<p>The dataset I want to use is the <em>Davidson 2017 &ldquo;Hate/Offensive&rdquo; Tweets</em> set which has around ~25000 balanced, single-line tweets.</p>
+<p>Since it&rsquo;s binary we can map:</p>
+<ul>
+<li>hate + offensive speech -&gt; 1</li>
+<li>anything else -&gt; 0</li>
+</ul>
+<h3 id="2-train--lock-the-artifact">2) Train &amp; lock the artifact<a hidden class="anchor" aria-hidden="true" href="#2-train--lock-the-artifact">#</a></h3>
+<p>We&rsquo;ll run a simple training loop (we can aim for a decent F1 but that&rsquo;s not the main priority here) and save the model as a <code>.joblib</code>.</p>
+<h3 id="3-wrapping-it-in-an-api">3) Wrapping it in an API<a hidden class="anchor" aria-hidden="true" href="#3-wrapping-it-in-an-api">#</a></h3>
+<p>This would be the most important part. I want to use FastAPI and BentoML; we&rsquo;ll use FastAPI for the clean routing and request handling and BentoML for model management, packaging, and scalable deployment.</p>
+<p>I&rsquo;ve seen people only use FastAPI but I feel that you don&rsquo;t get full model versioning support or multi-model serving if you skip BentoML.</p>
+<h3 id="4-package-it">4) Package it<a hidden class="anchor" aria-hidden="true" href="#4-package-it">#</a></h3>
+<p>I&rsquo;ll show the exmaple of using both (dockerfile and bento build) to create an image in a registry.</p>
+<h3 id="5-shipping">5) Shipping<a hidden class="anchor" aria-hidden="true" href="#5-shipping">#</a></h3>
+<p>We have a couple of options: Fly.io (heroku but for docker), Northflank (PaaS built for containers &amp; microservices), ECS (reliable but I don&rsquo;t want to pay), and K8s (overkill for this)</p>
+<p>Fly.io seems the most viable one here because it has the least amount of overhead.</p>
+<h3 id="6-wire-cicd">6) Wire CI/CD<a hidden class="anchor" aria-hidden="true" href="#6-wire-cicd">#</a></h3>
+<p>We&rsquo;ll use GitHub actions to build our image and deploy on every <code>main</code> push.</p>
+<h3 id="7-observability">7) Observability<a hidden class="anchor" aria-hidden="true" href="#7-observability">#</a></h3>
+<p>We&rsquo;ll implement logs, latency, traffic, model-drift hooks</p>
+<h3 id="8-closing-steps">8) Closing steps<a hidden class="anchor" aria-hidden="true" href="#8-closing-steps">#</a></h3>
+<p>A/B rollout, feature flags, retraining loop</p>
+<p>Let&rsquo;s get started.</p>
+<hr>
+<h3 id="1-pretraining--training">1) Pretraining &amp; Training<a hidden class="anchor" aria-hidden="true" href="#1-pretraining--training">#</a></h3>
+<p>Deep learning is definitely overkill here so I wanted to use Term Frequency - Inverse Document Frequency along with Logistic Regression using <code>sklearn</code>.  Essentially, TF-IDF gives high scores to words that are common in a document but rare across teh dataset, which usually carry the most signal.</p>
+<p>This method is great for spam detection, product categorization based on descriptions, basic sentiment analysis, and in our case, profanity/toxic comment classification.</p>
+<p>Here is what our loop would look like after we import our data:</p>
+<p>train.py:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> pandas <span style="color:#66d9ef">as</span> pd<span style="color:#f92672">,</span> joblib
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.model_selection <span style="color:#f92672">import</span> train_test_split
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.feature_extraction.text <span style="color:#f92672">import</span> TfidfVectorizer  
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.linear_model <span style="color:#f92672">import</span> LogisticRegression
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.pipeline <span style="color:#f92672">import</span> Pipeline
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>df <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_csv(<span style="color:#e6db74">&#34;tweets.csv&#34;</span>)          <span style="color:#75715e"># columns: text, label</span>
+</span></span><span style="display:flex;"><span>X_train, X_val, y_train, y_val <span style="color:#f92672">=</span> train_test_split(
+</span></span><span style="display:flex;"><span>    df[<span style="color:#e6db74">&#34;text&#34;</span>], df[<span style="color:#e6db74">&#34;label&#34;</span>], test_size<span style="color:#f92672">=</span><span style="color:#ae81ff">0.2</span>, random_state<span style="color:#f92672">=</span><span style="color:#ae81ff">42</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pipeline <span style="color:#f92672">=</span> Pipeline([
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#34;tfidf&#34;</span>, TfidfVectorizer(min_df<span style="color:#f92672">=</span><span style="color:#ae81ff">3</span>, ngram_range<span style="color:#f92672">=</span>(<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>))),
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">&#34;clf&#34;</span>,  LogisticRegression(max_iter<span style="color:#f92672">=</span><span style="color:#ae81ff">1000</span>))
+</span></span><span style="display:flex;"><span>])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pipeline<span style="color:#f92672">.</span>fit(X_train, y_train)
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;val-acc:&#34;</span>, pipeline<span style="color:#f92672">.</span>score(X_val, y_val))
+</span></span><span style="display:flex;"><span>joblib<span style="color:#f92672">.</span>dump(pipeline, <span style="color:#e6db74">&#34;profanity.joblib&#34;</span>)
+</span></span></code></pre></div><p>So we now have our model saved as <code>profanity.joblib</code> and we can proceed to putting this to production now. In the repository I&rsquo;ve added eval metrics like F1 and confusion matrix but I don&rsquo;t think they are that important in this case.</p>
+<h3 id="2-serving">2) Serving<a hidden class="anchor" aria-hidden="true" href="#2-serving">#</a></h3>
+<p>I&rsquo;ll start with showing just how to use FastAPI and then will introduce BentoML to show how it supercharges your workflow.</p>
+<h4 id="fastapi">FastAPI<a hidden class="anchor" aria-hidden="true" href="#fastapi">#</a></h4>
+<p>We would have to write a python script that exposes our API and then a dockerfile to serve.</p>
+<p>service.py:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> fastapi <span style="color:#f92672">import</span> FastAPI
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pydantic <span style="color:#f92672">import</span> BaseModel
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> joblib
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>model <span style="color:#f92672">=</span> joblib<span style="color:#f92672">.</span>load(<span style="color:#e6db74">&#34;profanity.joblib&#34;</span>)
+</span></span><span style="display:flex;"><span>app <span style="color:#f92672">=</span> FastAPI()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Req</span>(BaseModel):
+</span></span><span style="display:flex;"><span>    text: str
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@app.post</span>(<span style="color:#e6db74">&#34;/predict&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">predict</span>(r: Req):
+</span></span><span style="display:flex;"><span>    proba <span style="color:#f92672">=</span> model<span style="color:#f92672">.</span>predict_proba([r<span style="color:#f92672">.</span>text])[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;is_profane&#34;</span>: proba <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.5</span>, <span style="color:#e6db74">&#34;confidence&#34;</span>: proba}
+</span></span></code></pre></div><p>dockerfile:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-docker" data-lang="docker"><span style="display:flex;"><span><span style="color:#66d9ef">FROM</span><span style="color:#e6db74"> python:3.11-slim</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">WORKDIR</span><span style="color:#e6db74"> /app</span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> requirements.txt . <span style="color:#f92672">&amp;&amp;</span> pip install -r requirements.txt<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">COPY</span> . .<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">CMD</span> [<span style="color:#e6db74">&#34;uvicorn&#34;</span>, <span style="color:#e6db74">&#34;service:app&#34;</span>, <span style="color:#e6db74">&#34;--host&#34;</span>, <span style="color:#e6db74">&#34;0.0.0.0&#34;</span>, <span style="color:#e6db74">&#34;--port&#34;</span>, <span style="color:#e6db74">&#34;8000&#34;</span>]<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>Not bad right? Here&rsquo;s how BentoML simplifies it though:</p>
+<p>service.py:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> bentoml
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> bentoml.io <span style="color:#f92672">import</span> JSON
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> joblib; pipe <span style="color:#f92672">=</span> joblib<span style="color:#f92672">.</span>load(<span style="color:#e6db74">&#34;profanity.joblib&#34;</span>)
+</span></span><span style="display:flex;"><span>model_ref <span style="color:#f92672">=</span> bentoml<span style="color:#f92672">.</span>sklearn<span style="color:#f92672">.</span>save_model(<span style="color:#e6db74">&#34;profanity_detector&#34;</span>, pipe)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>svc <span style="color:#f92672">=</span> bentoml<span style="color:#f92672">.</span>Service(
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;profanity_api&#34;</span>,
+</span></span><span style="display:flex;"><span>    runners<span style="color:#f92672">=</span>[model_ref<span style="color:#f92672">.</span>to_runner()],
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@svc.api</span>(input<span style="color:#f92672">=</span>JSON(), output<span style="color:#f92672">=</span>JSON())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">predict</span>(payload):
+</span></span><span style="display:flex;"><span>    text <span style="color:#f92672">=</span> payload[<span style="color:#e6db74">&#34;text&#34;</span>]
+</span></span><span style="display:flex;"><span>    proba <span style="color:#f92672">=</span> svc<span style="color:#f92672">.</span>runners<span style="color:#f92672">.</span>profanity_detector<span style="color:#f92672">.</span>predict_proba<span style="color:#f92672">.</span>run([text])[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;is_profane&#34;</span>: proba <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0.5</span>, <span style="color:#e6db74">&#34;confidence&#34;</span>: proba}
+</span></span></code></pre></div><p>Serving locally:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>bentoml serve service.py:svc
+</span></span></code></pre></div><p>Packaging:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>bentoml build
+</span></span><span style="display:flex;"><span>bentoml containerize profanity_api:latest
+</span></span><span style="display:flex;"><span>docker run -p 3000:3000 profanity_api:latest
+</span></span></code></pre></div><p>Bento gives you <code>healthz</code> and <code>metrics</code> endpoints out the box. <code>healthz</code> is useful for when load balancers can ping to check if your service is healthy or needs to be restarted. <code>metrics</code> is a prometheus-compatible endpoint which exposes internal stats like request counts, response times, errors, memory usage, and latency histograms. This is really useful if you want to host your own observability serivce.</p>
+<p>Without BentoML, you&rsquo;d have to manually implement these endpoints which can be gruesome. Bento takes care of all of these and you instantly have them production-ready.</p>
+<h3 id="3-continuous-integration--continous-deployment">3) Continuous Integration &amp; Continous Deployment<a hidden class="anchor" aria-hidden="true" href="#3-continuous-integration--continous-deployment">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy ML endpoint</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">on</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">push</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">branches</span>: [<span style="color:#ae81ff">main]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">workflow_dispatch</span>: {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">jobs</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">build-push</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">runs-on</span>: <span style="color:#ae81ff">ubuntu-latest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">permissions</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">contents</span>: <span style="color:#ae81ff">read</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">packages</span>: <span style="color:#ae81ff">write</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">steps</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">actions/checkout@v4</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">bentoml/setup-bentoml-action@v1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">with</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">python-version</span>: <span style="color:#e6db74">&#34;3.11&#34;</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">cache</span>: <span style="color:#ae81ff">pip</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Build Bento</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">run</span>: <span style="color:#ae81ff">bentoml build</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Login to GHCR</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">docker/login-action@v3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">with</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">registry</span>: <span style="color:#ae81ff">ghcr.io</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">username</span>: <span style="color:#ae81ff">${{ github.repository_owner }}</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">password</span>: <span style="color:#ae81ff">${{ secrets.GITHUB_TOKEN }}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Containerize &amp; push</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">bentoml/containerize-push-action@v1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">with</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">bento-tag</span>: <span style="color:#ae81ff">profanity_api:latest</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">push</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ghcr.io/${{ github.repository_owner }}/profanity-api:latest</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Install flyctl</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">uses</span>: <span style="color:#ae81ff">superfly/flyctl-actions/setup-flyctl@master</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy to Fly.io</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">run</span>: <span style="color:#ae81ff">flyctl deploy --image ghcr.io/${{ github.repository_owner }}/profanity-api:latest --remote-only</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">env</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">FLY_API_TOKEN</span>: <span style="color:#ae81ff">${{ secrets.FLY_API_TOKEN }}</span>
+</span></span></code></pre></div><p>Here&rsquo;s the pipeline flow:</p>
+<ol>
+<li>Push to main (from wherever you are developing from, or a PR)</li>
+<li>Checkout your current repository</li>
+<li>GitHub builds Bento</li>
+<li>Container gets built + pushed to GHRC</li>
+<li><code>flyctl deploy</code> pulls from GHRC and deploys globally</li>
+</ol>
+<h3 id="4-observability">4) Observability<a hidden class="anchor" aria-hidden="true" href="#4-observability">#</a></h3>
+<p>With BentoML, every service already exposes <code>/metrics</code> in Prometheus format without any extra code.</p>
+<p>We can easily see what it is returning with the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl http://localhost:3000/metrics | head
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># HELP http_request_duration_seconds ...</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TYPE http_request_duration_seconds histogram</span>
+</span></span></code></pre></div><p>All this data is already in prometheus format, which makes it super easy down the line.</p>
+<p>We can quickly spin up Prom + Grafana:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker compose up -d prometheus grafana
+</span></span></code></pre></div><p>And now we have observability baked in as well 🤑</p>
+<p>Here&rsquo;s the overall flow:</p>
+<ol>
+<li>BentoML exposes <code>/metrics</code></li>
+<li>Prometheus scrapes + stores time-series data</li>
+<li>Grafana queries Prom + visualizes insights</li>
+</ol>
+<p>This obviously changes with the scale of your application - I would assume Youtube&rsquo;s RecSys and other tools would have more sophisticated versions of their observability. But at it&rsquo;s core they are measure ofr the same thing - how their infrastructure is doing (monitoring CPU, memory, p95 latency), how the application is behaving (2xx/4xx/5xx counts, request time, queue depth), and finally the inputs to the model (mean prob, class skew, confidence histograms).</p>
+<h3 id="5-model--data-drift-monitoring">5) Model &amp; Data-Drift Monitoring<a hidden class="anchor" aria-hidden="true" href="#5-model--data-drift-monitoring">#</a></h3>
+<p>Have you ever heard the term that ML models can silently fail in production? This happens when the input data changes and our model isn&rsquo;t prepared for that.</p>
+<p>In our case of the profanity checking model, that could happen if people could start saying new words / slurs that our model just has never seen before (the slurs that people say today are probably wildly differnet than what people used to say back in 2010).</p>
+<p>A nightly cron + Evidently AI gives you guardrails against this happening.</p>
+<p>nightly_check.py:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> evidently <span style="color:#f92672">import</span> ColumnMapping
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> evidently.report <span style="color:#f92672">import</span> Report
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> evidently.metric_preset <span style="color:#f92672">import</span> DataDriftPreset
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>baseline <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_parquet(<span style="color:#e6db74">&#34;2025-06-01.parquet&#34;</span>)
+</span></span><span style="display:flex;"><span>latest   <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_parquet(<span style="color:#e6db74">&#34;2025-06-28.parquet&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>rpt <span style="color:#f92672">=</span> Report(metrics<span style="color:#f92672">=</span>[DataDriftPreset()])
+</span></span><span style="display:flex;"><span>rpt<span style="color:#f92672">.</span>run(reference_data<span style="color:#f92672">=</span>baseline, current_data<span style="color:#f92672">=</span>latest,
+</span></span><span style="display:flex;"><span>        column_mapping<span style="color:#f92672">=</span>ColumnMapping(target<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>))
+</span></span><span style="display:flex;"><span>rpt<span style="color:#f92672">.</span>save_html(<span style="color:#e6db74">&#34;drift.html&#34;</span>)
+</span></span></code></pre></div><p>A lot of people then take this drift.html and store in in S3 which Grafana then embeds so product managers / non-technical people can see without having to ssh into the specific machine.</p>
+<h3 id="6-versioning-rollbacks-deployment-strategies">6) Versioning, Rollbacks, Deployment Strategies<a hidden class="anchor" aria-hidden="true" href="#6-versioning-rollbacks-deployment-strategies">#</a></h3>
+<p>This part is very similar to it&rsquo;s software counterpart.</p>
+<h4 id="1-model-versioning">1. Model Versioning<a hidden class="anchor" aria-hidden="true" href="#1-model-versioning">#</a></h4>
+<p>Every time a new model is trained, we should treat it like a software artifact. We should go ahead and save it with a unique version ID along with some other metadata (training date, dataset version, training script hash, val &amp; test set metrics (accuracy, F1, drift, etc.)).</p>
+<ul>
+<li>Version tracking: MLflow, Weights &amp; Biases, BentoML</li>
+<li>Storage: S3, GCS, MinIO</li>
+</ul>
+<p>This is very useful because we always know which model is in production, we have the ability to compare and debug past verisons, and reproduce behavior in production from months ago.</p>
+<h4 id="2-rollbacks">2. Rollbacks<a hidden class="anchor" aria-hidden="true" href="#2-rollbacks">#</a></h4>
+<p>Even if a new model looks promising in UAT with decent F1 scores, it can suddenly perform poorly in prod (drops in accuracy, increased latency, or user complaints).</p>
+<p>To be able to roll back a model instantly, we can just rebind the production endpoint to an older model or roll back the image tag if it was hosted as a Docker container.</p>
+<p>This can easily be automated by setting up triggers from Prometheus + Grafana + AlertManager which can go and trigger previous versions through CI/CD pipelines.</p>
+<h4 id="3-deployment-strategies">3. Deployment Strategies<a hidden class="anchor" aria-hidden="true" href="#3-deployment-strategies">#</a></h4>
+<ul>
+<li>Blue-Green: Deploy the new model to a parallel env while the old one is still serving. After validation, switch all traffic over.</li>
+<li>Canary: Slowly roll out the new model to a small subset of users (5-10%) while monitoring for issues. If things look good, gradually increase traffic.</li>
+<li>A/B testing: Route users randomly to different model versions (A vs B) and compare performance (CTR, conversions, etc.) Best for evaluating new models based on real user outcomes.</li>
+<li>Multi-Armed Bandit (MAB): A smarter version of A/B testing; we are going to route more traffic to the better-performing model as <em>results come in</em>. Dynamically allocating traffic based on current performance.</li>
+<li>Shadow Deployment (my most favorite, tradeoff is that you are wasting compute): Spin up the new model but send real production traffic to the both models (old and new) <em>without returning results from the new model to users</em>. It shadows the main model, allowing you to compare logs and behavior.</li>
+</ul>
+<h3 id="7-automated-retraining">7) Automated Retraining<a hidden class="anchor" aria-hidden="true" href="#7-automated-retraining">#</a></h3>
+<p>Automated retraining is how we keep our model fresh as the world changes (data drift, concept drift, new patterns, etc.)</p>
+<p>We can setup a pipeline to run on a schedule to:</p>
+<ol>
+<li>Pull new data</li>
+<li>Clean + process it</li>
+<li>Retrain the model</li>
+<li>Evaluate it</li>
+<li>Deploy it (using one of the above strategies, if it beats current prod model)</li>
+</ol>
+<p>We can think of this like a &ldquo;self-updating model factory&rdquo;. It&rsquo;s essential for serving ML models because one thing that is big today could be completely different tomorrow.</p>
+<hr>
+<p>Because ML is so data intensive and can have &ldquo;silent failures&rdquo;, we have many things that we have to do such that these models can be deployed well in production. We see another tradeoff that since machine learning is now the &ldquo;core&rdquo; to many applications, there are a lot of layers that we need to have in place so that we can keep it running smoothly.</p>
+<p>Take a look at <a href="https://github.com/akhilvreddy">this repository</a> to see the full code.</p>
+
 
   </div>
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://akhilvreddy.github.io/tags/word2vec/">Word2vec</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/embeddings/">Embeddings</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/nlp/">Nlp</a></li>
     </ul>
   </footer>
 </article>

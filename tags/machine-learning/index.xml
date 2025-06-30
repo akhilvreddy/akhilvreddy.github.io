@@ -6,14 +6,21 @@
     <description>Recent content in Machine Learning on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 30 Jun 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/tags/machine-learning/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Designing and building an AI agentic framework from scratch</title>
+      <link>https://akhilvreddy.github.io/posts/agentic-framework/</link>
+      <pubDate>Mon, 30 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/agentic-framework/</guid>
+      <description>I&amp;rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.</description>
+    </item>
     <item>
       <title>Why VAEs Changed the Way I Think About Modeling</title>
       <link>https://akhilvreddy.github.io/posts/vae/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/vae/</guid>
-      <description>&lt;p&gt;VAEs were my own introduction to machine learning and I was beyond confused how regression becomes this down the line; I want to dive into exactly that - going from approximating slope to representations.&lt;/p&gt;</description>
+      <description>VAEs were my own introduction to machine learning and I was stuck understanding how machine learning goes from linear regression to this. However, I did end up a lot on this non-traditional path.</description>
     </item>
   </channel>
 </rss>

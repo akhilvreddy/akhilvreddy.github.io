@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Designing and building an AI agentic framework from scratch | Akhil’s Blog</title>
+<meta name="keywords" content="machine learning, Agentic Systems">
+<meta name="description" content="I&rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.">
+<meta name="author" content="ML Systems &#43; Code">
+<link rel="canonical" href="https://akhilvreddy.github.io/posts/agentic-framework/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://akhilvreddy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://akhilvreddy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://akhilvreddy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://akhilvreddy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://akhilvreddy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://akhilvreddy.github.io/posts/agentic-framework/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/agentic-framework/">
+  <meta property="og:site_name" content="Akhil’s Blog">
+  <meta property="og:title" content="Designing and building an AI agentic framework from scratch">
+  <meta property="og:description" content="I’ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-06-30T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-06-30T00:00:00+00:00">
+    <meta property="article:tag" content="Machine Learning">
+    <meta property="article:tag" content="Agentic Systems">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Designing and building an AI agentic framework from scratch">
+<meta name="twitter:description" content="I&rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://akhilvreddy.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Designing and building an AI agentic framework from scratch",
+      "item": "https://akhilvreddy.github.io/posts/agentic-framework/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Designing and building an AI agentic framework from scratch",
+  "name": "Designing and building an AI agentic framework from scratch",
+  "description": "I\u0026rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.",
+  "keywords": [
+    "machine learning", "Agentic Systems"
+  ],
+  "articleBody": "Though agents are still early in their development, I really think that they bring the “artificial intelligence” to common people. If you really think about it, bots are the ones that actually will have the biggest effect on people’s day to day lives - that’s when AI goes from assistant to a tool with real value.\nOnline, I’ve seen a lot of boilerplate frameworks for using agents but I realized that unless I make one from scratch, I won’t fully understand what’s going on under the hood. I’ll start by designing and validating the agent first and then building\nDesigning an AI Agent From doing all my research I’ve come to the conclusion that the current paradigm in agentic AI is hacking together a brain by making the core LLM act like one, and wiring up external tools to cover what it lacks.\nAgent = autonomy + memory + tool use + goal orientation\nThe Brain of the Agent We use the the LLM (GPT-4o, Claude, Mistral, etc.) as the reasoning core:\nIt handles planning, language comprehension, tool selection, and decision making Since it doesn’t have persistence, state, or memory it’s a stateless tool (the core reason why we need to attach more things to make this useful) The Memory of the Agent The statelessness of the LLM needs is tackled with tools like:\nVector Databases (Pinecone, Weaviate, Chroma) for long term recall Scratchpads / prompts (ReAct chains or chain of thought) for short-term memory Logs / state tracking in files or databases Occassionally, self-reflection logs are inserted for iterative learning (kind of like telling the LLM what happened before and now reason from there) The External Tools for the Agent (Body, Senses, Hands) If you’ve read the famous Toolformer paper (Schick et. al, 2023) this should be pretty familiar - this paper lays the groundwork for LLMs to call other tools. In the case for the agent, we actually override this and instruct it like the following:\nHey LLM (GPT-4o/Claude/Mistral), here’s a scratchpad. If you think you need to use a tool, just write it like Action: Search[BTC price OCT 2024] and we’ll do it for you.\nIf we look back at Toolformer, it might seem like we are doing something that modern architectures already take care of (like LLM writing Action: Search[something]) and execute. Agent models are not using that yet because we need special training data and gradient updates to the backbone of the model. The issue is that most models we use for agents are not open source (OpenAI, Anthropic) so we can’t retrain them and even with the open-source models we don’t have enough compute to go ahead and fine tune them. Doing it manually also just gives us more control over the external APIs that are going to be called.\nHere’s how it would work in the real world:\nLLM Thought: I need to calculate the revenue\nAction: call_python(price * quantity)\nObservation: $500\nLLM Thought: Great, the revenue is $500. Let’s continue…\nThe Persistence for the Agent (Looping) Every single step of the agent’s behavior has to be re-fed into the model — like a goldfish with no short-term memory unless you glue the past back in. This is where the context window comes in.\nMost models have a token limit (ranging from 8K-128K tokens) where they store:\nAll previous thoughts Past actions Tool outputs (observations) Any instructions or reflections To make the LLM seem “alive” over time, we wrap it in a control loop. Tools like AutoGPT, BabyAGI, or CrewAI shine in doing just this: Plan, Act, Observe, Reflect, and Repeat.\nAn example loop could look like the following:\nPlan - LLM decides what subgoal or steps come next (“I need to look up product reviews”) Act - LLM decides which tool to use (Search [iPhone 15 reviews]) Observe - An external tool (web scraper / internal or external API) fetches results (“Top review says iPhone 15 battery life is amazing and great phone for the price.”) Reflect - LLM reflects on successes / failures (“LLM Thought: Good data, but I need more sources than just amazon.com”) Repeat - Feed everything above into the next prompt and continue. This gives the illusion of memory and continuous reasoning. It kind of reminds me of a RNN with a hidden state that evolves over time but wrapped for …\nAutoGPT / CrewAI essentially package and orchestrate this. They:\nKeep track of agent memory (usually a simple list of dictionaries) Manage tool execution between LLM calls Let you define multi-agent systems where each agent has a role (kind of like kubernetes for agents) In a sense these frameworks are the brain’s executive function. Here’s a side by side comparison:\nFunction Real Brain Agentic AI Reasoning Prefrontal cortex LLM (GPT, Claude, etc.) Memory Hippocampus Vector DB + prompt context Acting on world Motor cortex Tools / API calls / web actions Sensory input Eyes, ears, etc. Observations via tool outputs Reflection Meta-cognition Reflexion-style re-prompts Before we dive into building, let’s do a recap of the tools we need.\nToolkit checklist 👜 Foundation model – OpenAI GPT‑4o / Llama‑3 / Mixtral‑8x22B (brain)\nOrchestration lib – AutoGPT / BabyAGI / CrewAI (orchestration engine)\nVector DB – Pinecone / Weaviate (recall \u0026 context)\nKey–value memory – Redis / DynamoDB (scratch‑pad state, explained below)\nPlanner / workflow engine – Python asyncio (better for simple agents) / Celery (with RabbitMQ, better for complex agents)\nTool wrappers – OpenAI function‑calling / REST \u0026 gRPC / Playwright (the hands and feet of the agent)\nSandbox \u0026 security – Docker / network ACLs / per‑tool scopes (imagine letting the agent call os.system(\"rm -rf /\") at the root 😵)\nObservability – OpenTelemetry / Prometheus + Grafana (to monitor the metrics of the agent)\nNow that we know which tools we are going to use, let’s start building our agent.\nBuilding an AI Agent 1) Spinning up an Agent A. Define the mission It should we the overall high-level objective: we want a mission that can do tasks, nothing too complicated because I don’t have much compute / data but also not too simple that a non-agentic AI can easily handle as well (like check the weather in San Francisco everyday at 9 PM).\nOver time, success will be measured with how well it has completed this task.\nGiven the fact that I want reproducability and containerization, I wanted to go with a “File Cleanup Agent” - simple linux APIs but a pretty effective tool if you are like me and your /Documents is cluttered.\nB. Enumerate action space Action Description Purpose for Agent Linux Equivalent list_dir(path) Lists all files and folders in the target directory. Scans current state of /Documents. ls -al path get_metadata(file) Retrieves file info like size, extension, last modified time. Helps the agent make decisions based on recency, type, or size. stat file or ls -lh file move_file(src, dst) Moves a file from one location to another. Organizes cluttered files into categorized subfolders. mv src dst delete_file(file) Deletes a file from the system. Removes junk files (e.g., .tmp, .log, .DS_Store). rm file create_folder(path) Creates a new folder if it doesn’t exist. Makes subfolders like /Documents/Images, /Documents/PDFs. mkdir -p path rename_file(old, new) Renames a file to a cleaner, structured name. Fixes messy filenames like Screenshot 2023-12-01.png. mv old new read_file_head(file, n) Reads the first n lines of a file. Helps classify files (e.g., detect if it’s code, text notes). head -n 10 file find_old_files(days) Finds files older than a given number of days. Identifies stale data for deletion or archiving. find . -type f -mtime +30 Optional Extensions (Will add them in after the agent is working) Action Why it’s Cool categorize_file(file) Uses LLM to classify file type: “image”, “code”, “invoice”, etc. open_file(file) Opens a file using the system default viewer. log_action(action) Appends an action to a cleanup log file. Good for transparency \u0026 rollbacks. C. Draft prompts Now that we have the action space ready, we have to instruct the LLM to go ahead and use those tools. Since we are storing our calls / actions in a scratch pad, we would actually need the LLM to return the actions and memory state in a proper format every time. If your LLM is good enough, it should be able to understand these instructions and return in the proper format. Note that a highly quantized model or an early gen open source model might give you issues here.\n“Hey LLM, here’s your mission, here’s what you can do, and here’s the current file state. Now reason and return a sequence of actions.”\nHere’s what a draft could look like in our case:\nagent_prompt.txt\nYou are a File Cleanup Agent running inside a Docker container. Your goal is to intelligently organize and clean the `/Documents` directory using a set of basic Linux-style file operations. Below, the function is listed and the corresponding linux command is in paranthesis. Current more: dry run --- Mission: Organize the folder structure, archive old files, and delete junk (e.g., `.tmp`, `.log`, `.DS_Store`). Group files into meaningful subfolders like `/Documents/Images`, `/Documents/Finance`, etc. --- Action Space: Here are the only actions you are allowed to use: - `list_dir(path)` → Lists all files/folders at the given path. (`ls -al path`) - `get_metadata(file)` → Gets size, type, and timestamps. (`stat file`) - `move_file(src, dst)` → Moves a file to a new location. (`mv src dst`) - `delete_file(file)` → Deletes a file. (`rm file`) - `create_folder(path)` → Makes a new folder. (`mkdir -p path`) - `rename_file(old, new)` → Renames a file. (`mv old new`) - `read_file_head(file, n)` → Reads the first n lines. (`head -n 10 file`) - `find_old_files(days)` → Returns files older than a threshold. (`find . -type f -mtime +days`) --- Current Directory Snapshot: [ { “name”: “Screenshot 2023-12-01.png”, “size”: “1.2MB”, “last_modified”: “2023-12-01” }, { “name”: “Invoice_2022.pdf”, “size”: “345KB”, “last_modified”: “2022-04-10” }, { “name”: “notes.txt”, “size”: “9KB”, “last_modified”: “2024-11-02” }, { “name”: “temp_file.tmp”, “size”: “3KB”, “last_modified”: “2021-09-01” } ] --- Instructions: Using only the allowed actions, return a list of **python-style function calls** that clean up the `/Documents` folder based on file type, age, or naming patterns. Your output should be a list like: [ create_folder(“Images”), move_file(“Screenshot 2023-12-01.png”, “Images/”), create_folder(“Finance”), move_file(“Invoice_2022.pdf”, “Finance/”), delete_file(“temp_file.tmp”) ] Only include actions that are necessary — no redundant calls. --- If you're in a \"dry run\" mode, prefix each action with a comment explaining why you're doing it. D. Control loop The loop is your core agent driver. It:\nGets the current environment state Calls the LLM to decide actions Parses \u0026 executes those actions Loops or exits Here’s python pseudocode that will simulate a loop -\nmain.py:\ndef agent_loop(): while True: # get current file system state state = list_dir(\"/Documents\") metadata = [get_metadata(f) for f in state] # feed state + mission into the LLM prompt plan = generate_plan_from_llm(metadata) # uses your prompt from earlier # parse LLM response actions = parse_actions(plan) # execute actions one-by-one for action in actions: try: execute(action) except Exception as e: log_error(action, e) # break or wait if is_cleanup_complete(): break time.sleep(60) # optional: run every 1 min utils.py:\ndef list_dir(path): # returns list of file names return os.listdir(path) def get_metadata(file): # returns dict of size, extension, timestamps ... def generate_plan_from_llm(state_metadata): # calls your LLM with the prompt + current state return openai.ChatCompletion(...) def parse_actions(llm_output): # safely parse output into list of actions return ast.literal_eval(llm_output.strip()) def execute(action): # maps action string to real function if action.startswith(\"move_file\"): # use eval or a command router ... def is_cleanup_complete(): # maybe just run once for now return True Here’s the current flow:\n[LLM thinks] → [you parse plan] → [agent executes safely] → [you repeat]\nThe modularity of splitting up the … is really going to help us here because we can easily identify which part is failing and tackle that.\nE. Memory Let’s now give our agent short-term memory, so it can reflect, remember, and avoid acting like a goldfish.\nHere’s a simple table explaining the memory states we would need (for this specific agent):\nMemory Slots Slot Purpose action_log Full list of actions taken so far (with timestamps) failures Actions that failed (with reasons) already_seen_files Prevent loops or unnecessary reprocessing reasoning_log LLM thoughts or intermediate plans user_feedback Human-in-the-loop approvals or corrections In the case for this simple agent, we can use a setup like this:\nagent_memory = { \"action_log\": [], \"failures\": [], \"seen_files\": set(), } As our loop runs,\ndef execute(action): try: run(action) agent_memory[\"action_log\"].append(action) except Exception as e: agent_memory[\"failures\"].append({\"action\": action, \"error\": str(e)}) The memory passed into the following prompts would look like:\ncurrent_memory.txt\nHere are the actions already taken: [move_file(...), delete_file(...)] Here are failed actions: [delete_file(\"important.docx\") → PermissionError] We append this to our original prompt. We would do agent_prompt.txt + current_memory.txt. Something like this:\n# build memory string memory_str = build_memory_string(agent_memory) # combine with static prompt final_prompt = base_prompt + \"\\n\\n\" + memory_str # send to LLM response = call_llm(final_prompt) This part is the absolute core of the agent - we stitched together a small hippocampus.\nLet’s imagine what would happen without this part.\nSay suppose the agent’s thoughts are:\nIteration 1: LLM thought: “move file to Finance” But there’s no subdir named Finance. It should be calling a mkdir Finance but if it has no short term memory it won’t ever be able to do that.\nIt’s going to be like:\nIteration 2: LLM thought: “move file to Finance” Iteration 3: LLM thought: “move file to Finance” It’s stuck in a loop.\nWith this dynamic memory injection, we’ll get something like the following:\nTried to move file to Finance, operation failed. Logs returned mv: cannot move 'image.jpg' to '/Finance/image.jpg': No such file or directory.\nWe can also create and add a summary of past actions to help the model more. The more context we give it the better it’ll perform - but there’s a tradeoff. Injecting too much memory will burn your compute and you will definitely start to see token drift.\nSummary of past actions: - 14 files moved - 3 deletes - 2 folder creation errors F. Planning tricks We’ve now got the bare bones of the agent working. We can exploit some properties of LLMs to make our agent even smarter and efficient.\nWe’re now asking “How can my agent think better? How do I make it smarter at planning and sequencing actions?”\n1) Chain-of-Thought Reasoning (CoT) This is the core engine behind advanced models like OpenAI’s o-series (o1, o3, o4). We are going to force the LLM to think step by step before giving actions. This is going to help the LLM avoid impulsive plans and gives the model time to reflect.\nWe can prompt like this:\nBefore you give the final plan, explain your reasoning step-by-step. Example: - I see Screenshot.png → this is likely an image → should go in Images/ - I see Invoice.pdf → sounds like financial doc → should go in Finance/ - temp_file.tmp → temp files can be deleted Now we can tell it to return the final action list and we can expect a cleaner, distilled answer.\n2) Reflexion Loop The agent reflects on failed steps or suboptimal plans and tries again.\nWe can add the following\nPrevious plan caused an error: `move_file(...) → No such folder`. Reflect on why that happened and propose a corrected version. We’re essentially going to tell the model to try again and improve it’s reasoning.\nThis builds resiliance into the model because it now knows what works and doesn’t work.\n3) Tool Conditioning We have to be very explicit about which tools (actions) can be used and when; in the earlier section I gave an example that an agent could call os.system(\"rm -rf /\") at the root. In real world and production settings we have tons of tools that we want to give to the agents, but we want a lot of security about what they use when.\nA simple example could look like this:\nOnly use `move_file()` after confirming the destination folder exists. Use `create_folder()` as a prerequisite. Something like this can fix the hallucination of calling move_file() over and over again.\n4) Dry Run Planning Here we let the LLM just plan and think about its action steps before it actually goes ahead and takes actions. We can instruct as ““Pretend this is a dry run. What would you do, and why?”. This makes it verbose and cautious and is really useful for logging \u0026 debugging.\n5) Self Evaluation Prompts We can add\nEvaluate the quality of this plan on a scale of 1 to 10. Can you improve it before proceeding? Sometimes this leads to better, safer plans — without extra compute on our end.\n6) Planning Format Constraints This might be the most important part of your agent. We would absolutely need the LLM to return its steps in the right format - since we would just use a reader to go ahead and iterate through the scratch pad and do the actions one at a time. Incorrect formatting, even if it does have the correct information, may completely destroy the action taking part.\nHere is what we can add to counter that:\nReturn your plan in the form of a list of function calls: [ create_folder(\"Images\"), move_file(\"Screenshot.png\", \"Images/\"), delete_file(\"temp.log\") ] G. Error handling Some of the external calls from the agents will break - it’s almost inevitable. We need fallback logic for it to keep working around the issues that arise.\nA few examples could be:\nTool API fails? Retry or ask for help. Model says nonsense? Add validation/parsing checks. Token limits? Summarize old context while keeping the most important parts. Agents without error handling fall apart after 1-2 steps.\nH. Human-in-the-loop Just like any machine learning pipeline, we would need to let a person intervene when confidence is low.\nThis is useful when:\nStakes are high (e.g., money, production code) Ambiguity is high (e.g., fuzzy goals) You’re still testing your agent Can be as simple as: “Do you want to approve this plan?” or “Here are 3 options, pick one.”\n2) Evaluating the Agent Here are the core ways that agents are evaluated:\nMission Success Rate Dry Run Accuracy (Plan Quality Without Execution) Robustness \u0026 Recovery Format Compliance Memory Effectiveness Human Feedback Loop / quasi-RLHF Qualitative Evaluation These metrics basically are your eval metrics but now for the agent. Taking a look at these metrics you will ask:\n“How smart is this agent really, and how can I sharpen it next iteration?”\nYour end goal should be to have an agent that shows signs of goal alignment, tool mastery, context awareness, and self-correction.\n3) Guardrails, Retries \u0026 Safety Belts Even the smartest agents make mistakes sometimes and that’s just the reality when we let stateless LLMs operate in the real world. There are a couple things that we can do to protect our agent from hallucinations, bad decisions, and fatal errors. This can be thought of doing pen-testing against your agent before you want to deploy it to production.\nThe main techniques are the following:\nAction Whitelist We can hardcode a set of functions it’s allowed to call at a specific moment. If it tries to do something else, it will get rejected at the parser level. ALLOWED_ACTIONS = {\"move_file\", \"delete_file\", \"create_folder\", ...} This is the bare minimum safety net. As the agent becomes more powerful and scales up, the safety net must scale up sharply as well.\nRetry on Failure LLMs hallucinate sometimes and external APIs flake sometimes. Retrying with feedback always helps.\nTool Use Conditioning Teaching the model when to use tools, not just how makes a huge impact. Models stop calling incorrect functions at the wrong time.\nLoop Protection This prevents infinite cycles that go like:\nMove random.tmp to /temp /temp doesn’t exist -\u003e FAIL Try again, move random.tmp to /temp FAIL is cycled By tracking seen files, failed actions, and planning we put a stop to this.\nif action in memory[\"failures\"] or file in memory[\"seen_files\"]: skip_action() 4) Scaling the Agent Scaling an agent isn’t as simple as packing them into Docker containers and wiring them to K8s. The core question we are trying to hit on when we scale agents is:\n“How do we scale these up across tasks, users, compute, and complexity?”\nHere’s what we can do:\n1) Multiple Agents, Multiple Roles Instead of one agent doing everything, we can create specialized agents:\nPlanner agent: break the main goal into subgoals with clarity File classifier agent: maps files to categories Executor agent: runs file system actions Logger agent: tracks state and reports summaries We would have to use a message-passing loop (kind of like RabbitMQ) where agents would have to communicate through a shared memory or task queue.\nThis would essentially be like Kubernetes for reasoning tasks. Each pod (agent) has a role.\n2) Scale Across Users The main question we would have to solve is:\nWhat if 100 people wanted this agent we just built?\nWe would have to add:\nUser specific memory / namespaces Auth (if it’s a secure application, not just file system cleanup) A Flask / FastAPI wrapper to expose the agent A task queue like Celery to handle concurrent requests 3) Run in the Cloud Cloud-scale will let your agent live persistently. We can:\nDockerize the whole thing Deploy on cheap VPS (Fly.io, EC2) Use AWS Lambda or Google Cloud Functions for tool execution Store memory in S3, Redis, Pinecone, or DynamoDB This gives the agent the abilitiy to survive restarts, erorrs, and scaling needs for compute heavy tasks.\n4) Parallelism and Streaming Instead of waiting on one big LLM call -\u003e tool -\u003e repeat, we can:\nParallelize tool cals (like gathering all metadata at once) Use async/await patters in Python (with asyncio) Stream LLM responses (like vLLM) for fast feedback We can do something like this\nmetadata = await asyncio.gather(*[get_metadata(f) for f in files]) to lower latency for long sessions with a longer context window.\n5) Agent as a Service We can wrap the final agent into a full-on API others (or other agents) can call.\nWe could expose endpoints like:\n/clean-up /analyze-docs /summarize-folder if our own agent is fine tuned on that.\nAdding rate-limiting and a proper API Gateway would now let other users plug in their own tools.\nIf you take a look, this method actually turned your agent into a microservice which makes it even more powerful (loose coupling, reusability across use cases, independent scaling, and deployment flexibility).\nConclusion In my opinion, agents are really cool but they are super duck-taped. However, we’ve seen some great improvements come along the past 18 months and I have a lot of hope for this to scale up in the future. In fact a some people think that AGI = scaled-up, memory-rich, tool-using, autonomous agents stacked with reflection, planning, delegation, and self-improvement loops.\nPlease look at the accompanying repository to see the entire project. If you are interested in building your own agents, take a look at this plug and play repository of tools I created.\n",
+  "wordCount" : "3827",
+  "inLanguage": "en",
+  "datePublished": "2025-06-30T00:00:00Z",
+  "dateModified": "2025-06-30T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "ML Systems + Code"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://akhilvreddy.github.io/posts/agentic-framework/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Akhil’s Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://akhilvreddy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://akhilvreddy.github.io/" accesskey="h" title="Akhil’s Blog (Alt + H)">Akhil’s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://akhilvreddy.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://akhilvreddy.github.io/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://akhilvreddy.github.io/tooling/" title="Tooling">
+                    <span>Tooling</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.github.com/akhilvreddy" title="GitHub">
+                    <span>GitHub</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/akhilvreddy" title="LinkedIn">
+                    <span>LinkedIn</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/akhilvreddy" title="X">
+                    <span>X</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Designing and building an AI agentic framework from scratch
+    </h1>
+    <div class="post-meta"><span title='2025-06-30 00:00:00 +0000 UTC'>June 30, 2025</span>&nbsp;·&nbsp;18 min&nbsp;·&nbsp;ML Systems &#43; Code
+
+</div>
+  </header> 
+  <div class="post-content"><p>Though agents are still early in their development, I really think that they bring the &ldquo;artificial intelligence&rdquo; to common people. If you really think about it, bots are the ones that actually will have the biggest effect on people&rsquo;s day to day lives - that&rsquo;s when AI goes from assistant to a tool with real value.</p>
+<p>Online, I&rsquo;ve seen a lot of boilerplate frameworks for using agents but I realized that unless I make one from scratch, I won&rsquo;t fully understand what&rsquo;s going on under the hood. I&rsquo;ll start by designing and validating the agent first and then building</p>
+<hr>
+<h2 id="designing-an-ai-agent">Designing an AI Agent<a hidden class="anchor" aria-hidden="true" href="#designing-an-ai-agent">#</a></h2>
+<p>From doing all my research I&rsquo;ve come to the conclusion that the current paradigm in agentic AI is hacking together a brain by making the core LLM act like one, and wiring up external tools to cover what it lacks.</p>
+<blockquote>
+<p>Agent = autonomy + memory + tool use + goal orientation</p></blockquote>
+<h3 id="the-brain-of-the-agent">The Brain of the Agent<a hidden class="anchor" aria-hidden="true" href="#the-brain-of-the-agent">#</a></h3>
+<p>We use the the LLM (GPT-4o, Claude, Mistral, etc.) as the reasoning core:</p>
+<ul>
+<li>It handles planning, language comprehension, tool selection, and decision making</li>
+<li>Since it doesn&rsquo;t have persistence, state, or memory it&rsquo;s a stateless tool (the core reason why we need to attach more things to make this useful)</li>
+</ul>
+<h3 id="the-memory-of-the-agent">The Memory of the Agent<a hidden class="anchor" aria-hidden="true" href="#the-memory-of-the-agent">#</a></h3>
+<p>The statelessness of the LLM needs is tackled with tools like:</p>
+<ul>
+<li>Vector Databases (Pinecone, Weaviate, Chroma) for long term recall</li>
+<li>Scratchpads / prompts (ReAct chains or chain of thought) for short-term memory</li>
+<li>Logs / state tracking in files or databases</li>
+<li>Occassionally, self-reflection logs are inserted for iterative learning (kind of like telling the LLM what happened before and now reason from there)</li>
+</ul>
+<h3 id="the-external-tools-for-the-agent-body-senses-hands">The External Tools for the Agent (Body, Senses, Hands)<a hidden class="anchor" aria-hidden="true" href="#the-external-tools-for-the-agent-body-senses-hands">#</a></h3>
+<p>If you&rsquo;ve read the famous <a href="https://arxiv.org/abs/2302.04761">Toolformer paper (Schick et. al, 2023)</a> this should be pretty familiar - this paper lays the groundwork for LLMs to call other tools. In the case for the agent, we actually override this and instruct it like the following:</p>
+<blockquote>
+<p>Hey LLM (GPT-4o/Claude/Mistral), here&rsquo;s a scratchpad. If you think you need to use a tool, just write it like <code>Action: Search[BTC price OCT 2024]</code> and we&rsquo;ll do it for you.</p></blockquote>
+<p>If we look back at Toolformer, it might seem like we are doing something that modern architectures already take care of (like LLM writing <code>Action: Search[something]</code>) and execute. Agent models are not using that yet because we need special training data and gradient updates to the backbone of the model. The issue is that most models we use for agents are not open source (OpenAI, Anthropic) so we can&rsquo;t retrain them and even with the open-source models we don&rsquo;t have enough compute to go ahead and fine tune them. Doing it manually also just gives us more control over the external APIs that are going to be called.</p>
+<p>Here&rsquo;s how it would work in the real world:</p>
+<ul>
+<li>
+<p>LLM Thought: I need to calculate the revenue</p>
+</li>
+<li>
+<p>Action: <code>call_python(price * quantity)</code></p>
+</li>
+<li>
+<p>Observation: $500</p>
+</li>
+<li>
+<p>LLM Thought: Great, the revenue is $500. Let&rsquo;s continue&hellip;</p>
+</li>
+</ul>
+<h3 id="the-persistence-for-the-agent-looping">The Persistence for the Agent (Looping)<a hidden class="anchor" aria-hidden="true" href="#the-persistence-for-the-agent-looping">#</a></h3>
+<p>Every single step of the agent’s behavior has to be re-fed into the model — like a goldfish with no short-term memory unless you glue the past back in. This is where the context window comes in.</p>
+<p>Most models have a token limit (ranging from 8K-128K tokens) where they store:</p>
+<ul>
+<li>All previous thoughts</li>
+<li>Past actions</li>
+<li>Tool outputs (observations)</li>
+<li>Any instructions or reflections</li>
+</ul>
+<p>To make the LLM seem &ldquo;alive&rdquo; over time, we wrap it in a control loop. Tools like AutoGPT, BabyAGI, or CrewAI shine in doing just this: Plan, Act, Observe, Reflect, and Repeat.</p>
+<p>An example loop could look like the following:</p>
+<ol>
+<li>Plan - LLM decides what subgoal or steps come next (&ldquo;I need to look up product reviews&rdquo;)</li>
+<li>Act - LLM decides which tool to use (<code>Search [iPhone 15 reviews]</code>)</li>
+<li>Observe - An external tool (web scraper / internal or external API) fetches results (&ldquo;Top review says iPhone 15 battery life is amazing and great phone for the price.&rdquo;)</li>
+<li>Reflect - LLM reflects on successes / failures (&ldquo;LLM Thought: Good data, but I need more sources than just amazon.com&rdquo;)</li>
+<li>Repeat - Feed everything above into the next prompt and continue.</li>
+</ol>
+<p>This gives the illusion of memory and continuous reasoning. It kind of reminds me of a RNN with a hidden state that evolves over time but wrapped for &hellip;</p>
+<p>AutoGPT / CrewAI essentially package and orchestrate this. They:</p>
+<ul>
+<li>Keep track of agent memory (usually a simple list of dictionaries)</li>
+<li>Manage tool execution between LLM calls</li>
+<li>Let you define multi-agent systems where each agent has a role (kind of like kubernetes for agents)</li>
+</ul>
+<p>In a sense these frameworks are the <em>brain&rsquo;s executive function</em>. Here&rsquo;s a side by side comparison:</p>
+<table>
+  <thead>
+      <tr>
+          <th><strong>Function</strong></th>
+          <th><strong>Real Brain</strong></th>
+          <th><strong>Agentic AI</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Reasoning</td>
+          <td>Prefrontal cortex</td>
+          <td>LLM (GPT, Claude, etc.)</td>
+      </tr>
+      <tr>
+          <td>Memory</td>
+          <td>Hippocampus</td>
+          <td>Vector DB + prompt context</td>
+      </tr>
+      <tr>
+          <td>Acting on world</td>
+          <td>Motor cortex</td>
+          <td>Tools / API calls / web actions</td>
+      </tr>
+      <tr>
+          <td>Sensory input</td>
+          <td>Eyes, ears, etc.</td>
+          <td>Observations via tool outputs</td>
+      </tr>
+      <tr>
+          <td>Reflection</td>
+          <td>Meta-cognition</td>
+          <td>Reflexion-style re-prompts</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<p>Before we dive into building, let&rsquo;s do a recap of the tools we need.</p>
+<h3 id="toolkit-checklist-">Toolkit checklist 👜<a hidden class="anchor" aria-hidden="true" href="#toolkit-checklist-">#</a></h3>
+<ol>
+<li>
+<p>Foundation model – OpenAI GPT‑4o / Llama‑3 / Mixtral‑8x22B (brain)</p>
+</li>
+<li>
+<p>Orchestration lib – AutoGPT / BabyAGI / CrewAI (orchestration engine)</p>
+</li>
+<li>
+<p>Vector DB – Pinecone / Weaviate (recall &amp; context)</p>
+</li>
+<li>
+<p>Key–value memory – Redis / DynamoDB (scratch‑pad state, explained below)</p>
+</li>
+<li>
+<p>Planner / workflow engine – Python asyncio (better for simple agents) / Celery (with RabbitMQ, better for complex agents)</p>
+</li>
+<li>
+<p>Tool wrappers – OpenAI function‑calling / REST &amp; gRPC / Playwright (the hands and feet of the agent)</p>
+</li>
+<li>
+<p>Sandbox &amp; security – Docker / network ACLs / per‑tool scopes (imagine letting the agent call <code>os.system(&quot;rm -rf /&quot;)</code> at the root 😵)</p>
+</li>
+<li>
+<p>Observability – OpenTelemetry / Prometheus + Grafana (to monitor the metrics of the agent)</p>
+</li>
+</ol>
+<p>Now that we know which tools we are going to use, let&rsquo;s start building our agent.</p>
+<hr>
+<h2 id="building-an-ai-agent">Building an AI Agent<a hidden class="anchor" aria-hidden="true" href="#building-an-ai-agent">#</a></h2>
+<h3 id="1-spinning-up-an-agent">1) Spinning up an Agent<a hidden class="anchor" aria-hidden="true" href="#1-spinning-up-an-agent">#</a></h3>
+<h4 id="a-define-the-mission">A. Define the mission<a hidden class="anchor" aria-hidden="true" href="#a-define-the-mission">#</a></h4>
+<p>It should we the overall high-level objective: we want a mission that can do tasks, nothing too complicated because I don&rsquo;t have much compute / data but also not too simple that a non-agentic AI can easily handle as well (like check the weather in San Francisco everyday at 9 PM).</p>
+<p>Over time, success will be measured with how well it has completed this task.</p>
+<p>Given the fact that I want reproducability and containerization, I wanted to go with a &ldquo;File Cleanup Agent&rdquo; - simple linux APIs but a pretty effective tool if you are like me and your <code>/Documents</code> is cluttered.</p>
+<h4 id="b-enumerate-action-space">B. Enumerate action space<a hidden class="anchor" aria-hidden="true" href="#b-enumerate-action-space">#</a></h4>
+<table>
+  <thead>
+      <tr>
+          <th><strong>Action</strong></th>
+          <th><strong>Description</strong></th>
+          <th><strong>Purpose for Agent</strong></th>
+          <th><strong>Linux Equivalent</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>list_dir(path)</code></td>
+          <td>Lists all files and folders in the target directory.</td>
+          <td>Scans current state of <code>/Documents</code>.</td>
+          <td><code>ls -al path</code></td>
+      </tr>
+      <tr>
+          <td><code>get_metadata(file)</code></td>
+          <td>Retrieves file info like size, extension, last modified time.</td>
+          <td>Helps the agent make decisions based on recency, type, or size.</td>
+          <td><code>stat file</code> or <code>ls -lh file</code></td>
+      </tr>
+      <tr>
+          <td><code>move_file(src, dst)</code></td>
+          <td>Moves a file from one location to another.</td>
+          <td>Organizes cluttered files into categorized subfolders.</td>
+          <td><code>mv src dst</code></td>
+      </tr>
+      <tr>
+          <td><code>delete_file(file)</code></td>
+          <td>Deletes a file from the system.</td>
+          <td>Removes junk files (e.g., <code>.tmp</code>, <code>.log</code>, <code>.DS_Store</code>).</td>
+          <td><code>rm file</code></td>
+      </tr>
+      <tr>
+          <td><code>create_folder(path)</code></td>
+          <td>Creates a new folder if it doesn&rsquo;t exist.</td>
+          <td>Makes subfolders like <code>/Documents/Images</code>, <code>/Documents/PDFs</code>.</td>
+          <td><code>mkdir -p path</code></td>
+      </tr>
+      <tr>
+          <td><code>rename_file(old, new)</code></td>
+          <td>Renames a file to a cleaner, structured name.</td>
+          <td>Fixes messy filenames like <code>Screenshot 2023-12-01.png</code>.</td>
+          <td><code>mv old new</code></td>
+      </tr>
+      <tr>
+          <td><code>read_file_head(file, n)</code></td>
+          <td>Reads the first <code>n</code> lines of a file.</td>
+          <td>Helps classify files (e.g., detect if it’s code, text notes).</td>
+          <td><code>head -n 10 file</code></td>
+      </tr>
+      <tr>
+          <td><code>find_old_files(days)</code></td>
+          <td>Finds files older than a given number of days.</td>
+          <td>Identifies stale data for deletion or archiving.</td>
+          <td><code>find . -type f -mtime +30</code></td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="optional-extensions-will-add-them-in-after-the-agent-is-working">Optional Extensions (Will add them in after the agent is working)<a hidden class="anchor" aria-hidden="true" href="#optional-extensions-will-add-them-in-after-the-agent-is-working">#</a></h3>
+<table>
+  <thead>
+      <tr>
+          <th><strong>Action</strong></th>
+          <th><strong>Why it’s Cool</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>categorize_file(file)</code></td>
+          <td>Uses LLM to classify file type: &ldquo;image&rdquo;, &ldquo;code&rdquo;, &ldquo;invoice&rdquo;, etc.</td>
+      </tr>
+      <tr>
+          <td><code>open_file(file)</code></td>
+          <td>Opens a file using the system default viewer.</td>
+      </tr>
+      <tr>
+          <td><code>log_action(action)</code></td>
+          <td>Appends an action to a cleanup log file. Good for transparency &amp; rollbacks.</td>
+      </tr>
+  </tbody>
+</table>
+<h4 id="c-draft-prompts">C. Draft prompts<a hidden class="anchor" aria-hidden="true" href="#c-draft-prompts">#</a></h4>
+<p>Now that we have the action space ready, we have to instruct the LLM to go ahead and use those tools. Since we are storing our calls / actions in a scratch pad, we would actually need the LLM to return the actions and memory state in a proper format every time. If your LLM is good enough, it should be able to understand these instructions and return in the proper format. Note that a highly quantized model or an early gen open source model might give you issues here.</p>
+<blockquote>
+<p>&ldquo;Hey LLM, here’s your mission, here’s what you can do, and here’s the current file state. Now reason and return a sequence of actions.&rdquo;</p></blockquote>
+<p>Here&rsquo;s what a draft could look like in our case:</p>
+<p>agent_prompt.txt</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>You are a File Cleanup Agent running inside a Docker container.  
+</span></span><span style="display:flex;"><span>Your goal is to intelligently organize and clean the <span style="color:#e6db74">`/Documents`</span> directory using a set of basic Linux-style file operations. Below, the function is listed and the corresponding linux command is in paranthesis.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Current more: dry run
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Mission:
+</span></span><span style="display:flex;"><span>Organize the folder structure, archive old files, and delete junk (e.g., <span style="color:#e6db74">`.tmp`</span>, <span style="color:#e6db74">`.log`</span>, <span style="color:#e6db74">`.DS_Store`</span>). Group files into meaningful subfolders like <span style="color:#e6db74">`/Documents/Images`</span>, <span style="color:#e6db74">`/Documents/Finance`</span>, etc.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Action Space:
+</span></span><span style="display:flex;"><span>Here are the only actions you are allowed to use:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`list_dir(path)`</span> → Lists all files/folders at the given path. (<span style="color:#e6db74">`ls -al path`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`get_metadata(file)`</span> → Gets size, type, and timestamps. (<span style="color:#e6db74">`stat file`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`move_file(src, dst)`</span> → Moves a file to a new location. (<span style="color:#e6db74">`mv src dst`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`delete_file(file)`</span> → Deletes a file. (<span style="color:#e6db74">`rm file`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`create_folder(path)`</span> → Makes a new folder. (<span style="color:#e6db74">`mkdir -p path`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`rename_file(old, new)`</span> → Renames a file. (<span style="color:#e6db74">`mv old new`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`read_file_head(file, n)`</span> → Reads the first n lines. (<span style="color:#e6db74">`head -n 10 file`</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">-</span> <span style="color:#e6db74">`find_old_files(days)`</span> → Returns files older than a threshold. (<span style="color:#e6db74">`find . -type f -mtime +days`</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Current Directory Snapshot:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>{ “name”: “Screenshot 2023-12-01.png”, “size”: “1.2MB”, “last_modified”: “2023-12-01” },
+</span></span><span style="display:flex;"><span>{ “name”: “Invoice_2022.pdf”, “size”: “345KB”, “last_modified”: “2022-04-10” },
+</span></span><span style="display:flex;"><span>{ “name”: “notes.txt”, “size”: “9KB”, “last_modified”: “2024-11-02” },
+</span></span><span style="display:flex;"><span>{ “name”: “temp_file.tmp”, “size”: “3KB”, “last_modified”: “2021-09-01” }
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Instructions:
+</span></span><span style="display:flex;"><span>Using only the allowed actions, return a list of <span style="font-weight:bold">**python-style function calls**</span> that clean up the <span style="color:#e6db74">`/Documents`</span> folder based on file type, age, or naming patterns.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Your output should be a list like:
+</span></span><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>create_folder(“Images”),
+</span></span><span style="display:flex;"><span>move_file(“Screenshot 2023-12-01.png”, “Images/”),
+</span></span><span style="display:flex;"><span>create_folder(“Finance”),
+</span></span><span style="display:flex;"><span>move_file(“Invoice_2022.pdf”, “Finance/”),
+</span></span><span style="display:flex;"><span>delete_file(“temp_file.tmp”)
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Only include actions that are necessary — no redundant calls.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>If you&#39;re in a &#34;dry run&#34; mode, prefix each action with a comment explaining why you&#39;re doing it.
+</span></span></code></pre></div><h4 id="d-control-loop">D. Control loop<a hidden class="anchor" aria-hidden="true" href="#d-control-loop">#</a></h4>
+<p>The loop is your core agent driver. It:</p>
+<ol>
+<li>Gets the current environment state</li>
+<li>Calls the LLM to decide actions</li>
+<li>Parses &amp; executes those actions</li>
+<li>Loops or exits</li>
+</ol>
+<p>Here&rsquo;s python pseudocode that will simulate a loop -</p>
+<p>main.py:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">agent_loop</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># get current file system state</span>
+</span></span><span style="display:flex;"><span>        state <span style="color:#f92672">=</span> list_dir(<span style="color:#e6db74">&#34;/Documents&#34;</span>)
+</span></span><span style="display:flex;"><span>        metadata <span style="color:#f92672">=</span> [get_metadata(f) <span style="color:#66d9ef">for</span> f <span style="color:#f92672">in</span> state]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># feed state + mission into the LLM prompt</span>
+</span></span><span style="display:flex;"><span>        plan <span style="color:#f92672">=</span> generate_plan_from_llm(metadata)  <span style="color:#75715e"># uses your prompt from earlier</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># parse LLM response</span>
+</span></span><span style="display:flex;"><span>        actions <span style="color:#f92672">=</span> parse_actions(plan)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># execute actions one-by-one</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> action <span style="color:#f92672">in</span> actions:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                execute(action)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>                log_error(action, e)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># break or wait</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> is_cleanup_complete():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        time<span style="color:#f92672">.</span>sleep(<span style="color:#ae81ff">60</span>)  <span style="color:#75715e"># optional: run every 1 min</span>
+</span></span></code></pre></div><p>utils.py:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">list_dir</span>(path):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># returns list of file names</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> os<span style="color:#f92672">.</span>listdir(path)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_metadata</span>(file):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># returns dict of size, extension, timestamps</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">generate_plan_from_llm</span>(state_metadata):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># calls your LLM with the prompt + current state</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> openai<span style="color:#f92672">.</span>ChatCompletion(<span style="color:#f92672">...</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">parse_actions</span>(llm_output):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># safely parse output into list of actions</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ast<span style="color:#f92672">.</span>literal_eval(llm_output<span style="color:#f92672">.</span>strip())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">execute</span>(action):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># maps action string to real function</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> action<span style="color:#f92672">.</span>startswith(<span style="color:#e6db74">&#34;move_file&#34;</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># use eval or a command router</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">...</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">is_cleanup_complete</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># maybe just run once for now</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span></code></pre></div><p>Here&rsquo;s the current flow:</p>
+<blockquote>
+<p>[LLM thinks] → [you parse plan] → [agent executes safely] → [you repeat]</p></blockquote>
+<p>The modularity of splitting up the &hellip; is really going to help us here because we can easily identify which part is failing and tackle that.</p>
+<h4 id="e-memory">E. Memory<a hidden class="anchor" aria-hidden="true" href="#e-memory">#</a></h4>
+<p>Let&rsquo;s now give our agent short-term memory, so it can reflect, remember, and avoid acting like a goldfish.</p>
+<p>Here&rsquo;s a simple table explaining the memory states we would need (for this specific agent):</p>
+<h3 id="memory-slots">Memory Slots<a hidden class="anchor" aria-hidden="true" href="#memory-slots">#</a></h3>
+<table>
+  <thead>
+      <tr>
+          <th><strong>Slot</strong></th>
+          <th><strong>Purpose</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>action_log</code></td>
+          <td>Full list of actions taken so far (with timestamps)</td>
+      </tr>
+      <tr>
+          <td><code>failures</code></td>
+          <td>Actions that failed (with reasons)</td>
+      </tr>
+      <tr>
+          <td><code>already_seen_files</code></td>
+          <td>Prevent loops or unnecessary reprocessing</td>
+      </tr>
+      <tr>
+          <td><code>reasoning_log</code></td>
+          <td>LLM thoughts or intermediate plans</td>
+      </tr>
+      <tr>
+          <td><code>user_feedback</code></td>
+          <td>Human-in-the-loop approvals or corrections</td>
+      </tr>
+  </tbody>
+</table>
+<p>In the case for this simple agent, we can use a setup like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>agent_memory <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;action_log&#34;</span>: [],
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;failures&#34;</span>: [],
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;seen_files&#34;</span>: set(),
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>As our loop runs,</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">execute</span>(action):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        run(action)
+</span></span><span style="display:flex;"><span>        agent_memory[<span style="color:#e6db74">&#34;action_log&#34;</span>]<span style="color:#f92672">.</span>append(action)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>        agent_memory[<span style="color:#e6db74">&#34;failures&#34;</span>]<span style="color:#f92672">.</span>append({<span style="color:#e6db74">&#34;action&#34;</span>: action, <span style="color:#e6db74">&#34;error&#34;</span>: str(e)})
+</span></span></code></pre></div><p>The memory passed into the following prompts would look like:</p>
+<p>current_memory.txt</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Here are the actions already taken:
+</span></span><span style="display:flex;"><span>[move_file(...), delete_file(...)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Here are failed actions:
+</span></span><span style="display:flex;"><span>[delete_file(&#34;important.docx&#34;) → PermissionError]
+</span></span></code></pre></div><p>We append this to our original prompt. We would do <code>agent_prompt.txt</code> + <code>current_memory.txt</code>. Something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># build memory string</span>
+</span></span><span style="display:flex;"><span>memory_str <span style="color:#f92672">=</span> build_memory_string(agent_memory)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># combine with static prompt</span>
+</span></span><span style="display:flex;"><span>final_prompt <span style="color:#f92672">=</span> base_prompt <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">+</span> memory_str
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># send to LLM</span>
+</span></span><span style="display:flex;"><span>response <span style="color:#f92672">=</span> call_llm(final_prompt)
+</span></span></code></pre></div><p>This part is the absolute <em>core</em> of the agent - we stitched together a small hippocampus.</p>
+<p>Let&rsquo;s imagine what would happen without this part.</p>
+<p>Say suppose the agent&rsquo;s thoughts are:</p>
+<ul>
+<li>Iteration 1: LLM thought: &ldquo;move file to <code>Finance</code>&rdquo;</li>
+</ul>
+<p>But there&rsquo;s no subdir named <code>Finance</code>. It should be calling a <code>mkdir Finance</code> but if it has no short term memory it won&rsquo;t ever be able to do that.</p>
+<p>It&rsquo;s going to be like:</p>
+<ul>
+<li>Iteration 2: LLM thought: &ldquo;move file to <code>Finance</code>&rdquo;</li>
+<li>Iteration 3: LLM thought: &ldquo;move file to <code>Finance</code>&rdquo;</li>
+</ul>
+<p>It&rsquo;s stuck in a loop.</p>
+<p>With this dynamic memory injection, we&rsquo;ll get something like the following:</p>
+<blockquote>
+<p>Tried to move file to <code>Finance</code>, operation failed. Logs returned <code>mv: cannot move 'image.jpg' to '/Finance/image.jpg': No such file or directory</code>.</p></blockquote>
+<p>We can also create and add a summary of past actions to help the model more. The more context we give it the better it&rsquo;ll perform - but there&rsquo;s a tradeoff. Injecting too much memory will burn your compute and you will definitely start to see token drift.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Summary of past actions:
+</span></span><span style="display:flex;"><span>- 14 files moved
+</span></span><span style="display:flex;"><span>- 3 deletes
+</span></span><span style="display:flex;"><span>- 2 folder creation errors
+</span></span></code></pre></div><h4 id="f-planning-tricks">F. Planning tricks<a hidden class="anchor" aria-hidden="true" href="#f-planning-tricks">#</a></h4>
+<p>We&rsquo;ve now got the bare bones of the agent working. We can exploit some properties of LLMs to make our agent even smarter and efficient.</p>
+<blockquote>
+<p>We&rsquo;re now asking “How can my agent think better? How do I make it smarter at planning and sequencing actions?”</p></blockquote>
+<h4 id="1-chain-of-thought-reasoning-cot">1) Chain-of-Thought Reasoning (CoT)<a hidden class="anchor" aria-hidden="true" href="#1-chain-of-thought-reasoning-cot">#</a></h4>
+<p>This is the core engine behind advanced models like OpenAI&rsquo;s o-series (o1, o3, o4). We are going to force the LLM to think step by step before giving actions. This is going to help the LLM avoid impulsive plans and gives the model time to reflect.</p>
+<p>We can prompt like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Before you give the final plan, explain your reasoning step-by-step.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Example:
+</span></span><span style="display:flex;"><span>- I see Screenshot.png → this is likely an image → should go in Images/
+</span></span><span style="display:flex;"><span>- I see Invoice.pdf → sounds like financial doc → should go in Finance/
+</span></span><span style="display:flex;"><span>- temp_file.tmp → temp files can be deleted
+</span></span></code></pre></div><p>Now we can tell it to return the final action list and we can expect a cleaner, distilled answer.</p>
+<h4 id="2-reflexion-loop">2) Reflexion Loop<a hidden class="anchor" aria-hidden="true" href="#2-reflexion-loop">#</a></h4>
+<p>The agent reflects on failed steps or suboptimal plans and tries again.</p>
+<p>We can add the following</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-markdown" data-lang="markdown"><span style="display:flex;"><span>Previous plan caused an error: <span style="color:#e6db74">`move_file(...) → No such folder`</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Reflect on why that happened and propose a corrected version.
+</span></span></code></pre></div><blockquote>
+<p>We&rsquo;re essentially going to tell the model to try again and improve it&rsquo;s reasoning.</p></blockquote>
+<p>This builds resiliance into the model because it now knows what works and doesn&rsquo;t work.</p>
+<h4 id="3-tool-conditioning">3) Tool Conditioning<a hidden class="anchor" aria-hidden="true" href="#3-tool-conditioning">#</a></h4>
+<p>We have to be very explicit about which tools (actions) can be used and when; in the earlier section I gave an example that an agent could call <code>os.system(&quot;rm -rf /&quot;)</code> at the root. In real world and production settings we have tons of tools that we want to give to the agents, but we want a lot of security about <em>what</em> they use <em>when</em>.</p>
+<p>A simple example could look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Only use `move_file()` after confirming the destination folder exists.
+</span></span><span style="display:flex;"><span>Use `create_folder()` as a prerequisite.
+</span></span></code></pre></div><p>Something like this can fix the hallucination of calling move_file() over and over again.</p>
+<h4 id="4-dry-run-planning">4) Dry Run Planning<a hidden class="anchor" aria-hidden="true" href="#4-dry-run-planning">#</a></h4>
+<p>Here we let the LLM just plan and think about its action steps before it actually goes ahead and takes actions. We can instruct as &ldquo;“Pretend this is a dry run. What would you do, and why?”. This makes it verbose and cautious and is really useful for logging &amp; debugging.</p>
+<h4 id="5-self-evaluation-prompts">5) Self Evaluation Prompts<a hidden class="anchor" aria-hidden="true" href="#5-self-evaluation-prompts">#</a></h4>
+<p>We can add</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Evaluate the quality of this plan on a scale of 1 to 10.
+</span></span><span style="display:flex;"><span>Can you improve it before proceeding?
+</span></span></code></pre></div><p>Sometimes this leads to better, safer plans — without extra compute on our end.</p>
+<h4 id="6-planning-format-constraints">6) Planning Format Constraints<a hidden class="anchor" aria-hidden="true" href="#6-planning-format-constraints">#</a></h4>
+<p>This might be the most important part of your agent. We would absolutely need the LLM to return its steps in the right format - since we would just use a reader to go ahead and iterate through the scratch pad and do the actions one at a time. Incorrect formatting, even if it does have the correct information, may completely destroy the action taking part.</p>
+<p>Here is what we can add to counter that:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Return your plan in the form of a list of function calls:
+</span></span><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>  create_folder(&#34;Images&#34;),
+</span></span><span style="display:flex;"><span>  move_file(&#34;Screenshot.png&#34;, &#34;Images/&#34;),
+</span></span><span style="display:flex;"><span>  delete_file(&#34;temp.log&#34;)
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><h4 id="g-error-handling">G. Error handling<a hidden class="anchor" aria-hidden="true" href="#g-error-handling">#</a></h4>
+<p>Some of the external calls from the agents will break - it&rsquo;s almost inevitable. We need fallback logic for it to keep working around the issues that arise.</p>
+<p>A few examples could be:</p>
+<ul>
+<li>Tool API fails? Retry or ask for help.</li>
+<li>Model says nonsense? Add validation/parsing checks.</li>
+<li>Token limits? Summarize old context while keeping the most important parts.</li>
+</ul>
+<p>Agents without error handling fall apart after 1-2 steps.</p>
+<h4 id="h-human-in-the-loop">H. Human-in-the-loop<a hidden class="anchor" aria-hidden="true" href="#h-human-in-the-loop">#</a></h4>
+<p>Just like any machine learning pipeline, we would need to let a person intervene when confidence is low.</p>
+<p>This is useful when:</p>
+<ul>
+<li>Stakes are high (e.g., money, production code)</li>
+<li>Ambiguity is high (e.g., fuzzy goals)</li>
+<li>You’re still testing your agent</li>
+</ul>
+<p>Can be as simple as: “Do you want to approve this plan?” or “Here are 3 options, pick one.”</p>
+<h3 id="2-evaluating-the-agent">2) Evaluating the Agent<a hidden class="anchor" aria-hidden="true" href="#2-evaluating-the-agent">#</a></h3>
+<p>Here are the core ways that agents are evaluated:</p>
+<ul>
+<li>Mission Success Rate</li>
+<li>Dry Run Accuracy (Plan Quality Without Execution)</li>
+<li>Robustness &amp; Recovery</li>
+<li>Format Compliance</li>
+<li>Memory Effectiveness</li>
+<li>Human Feedback Loop / quasi-RLHF</li>
+<li>Qualitative Evaluation</li>
+</ul>
+<p>These metrics basically are your eval metrics but now for the agent. Taking a look at these metrics you will ask:</p>
+<blockquote>
+<p>&ldquo;How smart is this agent really, and how can I sharpen it next iteration?&rdquo;</p></blockquote>
+<p>Your end goal should be to have an agent that shows signs of goal alignment, tool mastery, context awareness, and self-correction.</p>
+<h3 id="3-guardrails-retries-safety-belts">3) Guardrails, Retries &amp; Safety Belts<a hidden class="anchor" aria-hidden="true" href="#3-guardrails-retries-safety-belts">#</a></h3>
+<p>Even the smartest agents make mistakes sometimes and that&rsquo;s just the reality when we let stateless LLMs operate in the real world. There are a couple things that we can do to protect our agent from hallucinations, bad decisions, and fatal errors. This can be thought of doing pen-testing against your agent before you want to deploy it to production.</p>
+<p>The main techniques are the following:</p>
+<ul>
+<li>Action Whitelist
+We can hardcode a set of functions it&rsquo;s allowed to call at a specific moment. If it tries to do something else, it will get rejected at the parser level.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>ALLOWED_ACTIONS <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;move_file&#34;</span>, <span style="color:#e6db74">&#34;delete_file&#34;</span>, <span style="color:#e6db74">&#34;create_folder&#34;</span>, <span style="color:#f92672">...</span>}
+</span></span></code></pre></div><p>This is the <strong>bare minimum</strong> safety net. As the agent becomes more powerful and scales up, the safety net must scale up sharply as well.</p>
+<ul>
+<li>
+<p>Retry on Failure
+LLMs hallucinate sometimes and external APIs flake sometimes. Retrying with feedback always helps.</p>
+</li>
+<li>
+<p>Tool Use Conditioning
+Teaching the model <em>when</em> to use tools, not just <em>how</em> makes a huge impact. Models stop calling incorrect functions at the wrong time.</p>
+</li>
+<li>
+<p>Loop Protection
+This prevents infinite cycles that go like:</p>
+<ul>
+<li>Move random.tmp to <code>/temp</code></li>
+<li><code>/temp</code> doesn&rsquo;t exist -&gt; FAIL</li>
+<li>Try again, move random.tmp to <code>/temp</code></li>
+<li>FAIL is cycled</li>
+</ul>
+</li>
+</ul>
+<p>By tracking seen files, failed actions, and planning we put a stop to this.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> action <span style="color:#f92672">in</span> memory[<span style="color:#e6db74">&#34;failures&#34;</span>] <span style="color:#f92672">or</span> file <span style="color:#f92672">in</span> memory[<span style="color:#e6db74">&#34;seen_files&#34;</span>]:
+</span></span><span style="display:flex;"><span>    skip_action()
+</span></span></code></pre></div><h3 id="4-scaling-the-agent">4) Scaling the Agent<a hidden class="anchor" aria-hidden="true" href="#4-scaling-the-agent">#</a></h3>
+<p>Scaling an agent isn&rsquo;t as simple as packing them into Docker containers and wiring them to K8s. The core question we are trying to hit on when we scale agents is:</p>
+<blockquote>
+<p>&ldquo;How do we scale these up across tasks, users, compute, and complexity?&rdquo;</p></blockquote>
+<p>Here&rsquo;s what we can do:</p>
+<h4 id="1-multiple-agents-multiple-roles">1) Multiple Agents, Multiple Roles<a hidden class="anchor" aria-hidden="true" href="#1-multiple-agents-multiple-roles">#</a></h4>
+<p>Instead of one agent doing everything, we can create <strong>specialized agents</strong>:</p>
+<ul>
+<li>Planner agent: break the main goal into subgoals with clarity</li>
+<li>File classifier agent: maps files to categories</li>
+<li>Executor agent: runs file system actions</li>
+<li>Logger agent: tracks state and reports summaries</li>
+</ul>
+<p>We would have to use a message-passing loop (kind of like RabbitMQ) where agents would have to communicate through a shared memory or task queue.</p>
+<p>This would essentially be like Kubernetes for reasoning tasks. Each pod (agent) has a role.</p>
+<h4 id="2-scale-across-users">2) Scale Across Users<a hidden class="anchor" aria-hidden="true" href="#2-scale-across-users">#</a></h4>
+<p>The main question we would have to solve is:</p>
+<blockquote>
+<p>What if 100 people wanted this agent we just built?</p></blockquote>
+<p>We would have to add:</p>
+<ul>
+<li>User specific memory / namespaces</li>
+<li>Auth (if it&rsquo;s a secure application, not just file system cleanup)</li>
+<li>A Flask / FastAPI wrapper to expose the agent</li>
+<li>A task queue like Celery to handle concurrent requests</li>
+</ul>
+<h4 id="3-run-in-the-cloud">3) Run in the Cloud<a hidden class="anchor" aria-hidden="true" href="#3-run-in-the-cloud">#</a></h4>
+<p>Cloud-scale will let your agent live persistently. We can:</p>
+<ul>
+<li>Dockerize the whole thing</li>
+<li>Deploy on cheap VPS (Fly.io, EC2)</li>
+<li>Use AWS Lambda or Google Cloud Functions for tool execution</li>
+<li>Store memory in S3, Redis, Pinecone, or DynamoDB</li>
+</ul>
+<p>This gives the agent the abilitiy to survive restarts, erorrs, and scaling needs for compute heavy tasks.</p>
+<h4 id="4-parallelism-and-streaming">4) Parallelism and Streaming<a hidden class="anchor" aria-hidden="true" href="#4-parallelism-and-streaming">#</a></h4>
+<p>Instead of waiting on one big LLM call -&gt; tool -&gt; repeat, we can:</p>
+<ul>
+<li>Parallelize tool cals (like gathering all metadata at once)</li>
+<li>Use async/await patters in Python (with <code>asyncio</code>)</li>
+<li>Stream LLM responses (like vLLM) for fast feedback</li>
+</ul>
+<p>We can do something like this</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>metadata <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> asyncio<span style="color:#f92672">.</span>gather(<span style="color:#f92672">*</span>[get_metadata(f) <span style="color:#66d9ef">for</span> f <span style="color:#f92672">in</span> files])
+</span></span></code></pre></div><p>to lower latency for long sessions with a longer context window.</p>
+<h4 id="5-agent-as-a-service">5) Agent as a Service<a hidden class="anchor" aria-hidden="true" href="#5-agent-as-a-service">#</a></h4>
+<p>We can wrap the final agent into a full-on API others (or other agents) can call.</p>
+<p>We could expose endpoints like:</p>
+<ul>
+<li><code>/clean-up</code></li>
+<li><code>/analyze-docs</code></li>
+<li><code>/summarize-folder</code></li>
+</ul>
+<p>if our own agent is fine tuned on that.</p>
+<p>Adding rate-limiting and a proper API Gateway would now let other users plug in their own tools.</p>
+<p>If you take a look, this method actually turned your agent into a microservice which makes it even more powerful (loose coupling, reusability across use cases, independent scaling, and deployment flexibility).</p>
+<hr>
+<h2 id="conclusion">Conclusion<a hidden class="anchor" aria-hidden="true" href="#conclusion">#</a></h2>
+<p>In my opinion, agents are really cool but they are super duck-taped. However, we&rsquo;ve seen some great improvements come along the past 18 months and I have a lot of hope for this to scale up in the future. In fact a some people think that AGI = scaled-up, memory-rich, tool-using, autonomous agents stacked with reflection, planning, delegation, and self-improvement loops.</p>
+<p>Please look at the accompanying <a href="http://github.com/akhilvreddy/agent-from-scratch">repository</a> to see the entire project. If you are interested in building your own agents, take a look at this plug and play <a href="http://github.com/akhilvreddy/agentic-tools">repository</a> of tools I created.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://akhilvreddy.github.io/tags/machine-learning/">Machine Learning</a></li>
+      <li><a href="https://akhilvreddy.github.io/tags/agentic-systems/">Agentic Systems</a></li>
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://akhilvreddy.github.io/"> </a></span>
+
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
