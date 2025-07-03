@@ -5,9 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Why I think Tesla&#39;s Robotaxi will do laps on Waymo | Akhil’s Blog</title>
+<title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR | Akhil’s Blog</title>
 <meta name="keywords" content="">
-<meta name="description" content="In the coming years, I have a feeling that Robotaxi is going to scale like Uber whereas Waymo will scale like Lyft (if even). The comparison becomes lean deep neural networks vs. redundant vision &amp; sensors.">
+<meta name="description" content="In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.">
 <meta name="author" content="Computer Vision &amp; Personal Opinions">
 <link rel="canonical" href="https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -57,16 +57,16 @@
     </style>
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/">
   <meta property="og:site_name" content="Akhil’s Blog">
-  <meta property="og:title" content="Why I think Tesla&#39;s Robotaxi will do laps on Waymo">
-  <meta property="og:description" content="In the coming years, I have a feeling that Robotaxi is going to scale like Uber whereas Waymo will scale like Lyft (if even). The comparison becomes lean deep neural networks vs. redundant vision &amp; sensors.">
+  <meta property="og:title" content="Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR">
+  <meta property="og:description" content="In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-06-24T18:12:56-04:00">
-    <meta property="article:modified_time" content="2025-06-24T18:12:56-04:00">
+    <meta property="article:published_time" content="2025-07-01T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-07-01T00:00:00+00:00">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Why I think Tesla&#39;s Robotaxi will do laps on Waymo">
-<meta name="twitter:description" content="In the coming years, I have a feeling that Robotaxi is going to scale like Uber whereas Waymo will scale like Lyft (if even). The comparison becomes lean deep neural networks vs. redundant vision &amp; sensors.">
+<meta name="twitter:title" content="Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR">
+<meta name="twitter:description" content="In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.">
 
 
 <script type="application/ld+json">
@@ -83,7 +83,7 @@
     {
       "@type": "ListItem",
       "position":  2 ,
-      "name": "Why I think Tesla's Robotaxi will do laps on Waymo",
+      "name": "Tesla's Robotaxi \u003e Google's Waymo: Vision vs. LiDAR",
       "item": "https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/"
     }
   ]
@@ -93,17 +93,17 @@
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "Why I think Tesla's Robotaxi will do laps on Waymo",
-  "name": "Why I think Tesla\u0027s Robotaxi will do laps on Waymo",
-  "description": "In the coming years, I have a feeling that Robotaxi is going to scale like Uber whereas Waymo will scale like Lyft (if even). The comparison becomes lean deep neural networks vs. redundant vision \u0026amp; sensors.",
+  "headline": "Tesla's Robotaxi \u003e Google's Waymo: Vision vs. LiDAR",
+  "name": "Tesla\u0027s Robotaxi \u003e Google\u0027s Waymo: Vision vs. LiDAR",
+  "description": "In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.",
   "keywords": [
     
   ],
   "articleBody": "Tesla’s Robotaxis and Google’s Waymo solve the same problem in two vastly different ways but I believe that the approach that tesla is taking is going to out-scale Waymo’s approach in a few years. In my opinion, tesla not only picked the better approach, they have the greatest secret weapon of all time (espeically in machine learning): data.\nRobotaxi uses an end-to-end neural network driver with 8 cameras around the car. Essentially they are betting on the fact that if the neural network understands the current driving conditions, cheap hardware lets them scale up to millions.\nWaymo leans on a sensor fusion stack: lidar, radar, cameras, HD maps—prioritizing redundancy, and measurable safety.\nIn essance, this is the same trade-off we see all the time in Computer Science but now wrapped in self driving cars: simplicity \u0026 scale vs. redundancy \u0026 robustness.\nLet’s dive into their individual software stacks:\nSensor Philosophy: Monocular vs. Multispectral Tesla: “Eyes Only, like a human”\n8 × HDR cameras (plus a front “tri‑cam” setup) give a 360° bubble.\nBeta units are regaining a slim HD radar to assist in rain/fog, but lidar is a four‑letter word in Palo Alto.\nGoal: keep sensor BOM ≈ $400 so every Model Y can moonlight as a robotaxi.\n–\nWaymo: “See Everything, Twice”\n29 cameras, 5 lidars, 6 imaging radars per car.\n360° lidar range to 300 m, down‑to‑5 cm depth resolution.\nOnboard heaters + cleaning nozzles because hardware this fancy hates LA/Phoenix dust.\nTesla’s network must infer depth \u0026 occupancy from pure images whereas Waymo just measures it in point clouds, bringing out the cheaper vs. easier argument. However, as technology like Neural Effective Field Radiance improves, inferring depth from plain 2 dimensional images is not that diffcult for these nets. Also, humans don’t have lidar attached to them - we take 2 separate 2D images (from each eye) slightly spaced apart and then stitch them together and our brain is the one that makes thigns have depth. This is the exact thing that tesla is betting on. If humans only drive by seeing 2D images of the world, they think that their car can do it as well. And to be honest, Robotaxis do drive pretty well just by seeing images of the world.\nIf we look at Waymo, it is definitely overkill. They not only capture images from 29 cameras, they have LiDAR senesor across multiple parts of the vehicle, making it super easy to sense how close / far objects are to you. That’s useful, but if tesla is inferring depth without external LiDARs on top, that method will scale much easier.\nPerception Pipeline: From Pixels/Points → Drivable Space Stage Tesla (FSD v12) Waymo (5th-Gen Stack) Model Backbone HydraNet is tesla’s multi-task CNN -\u003e Occupancy Network voxelizes (fancy word to say map to 3D) the world around the car Sensor-specific CNNs + BEV transformer -\u003e features are fused into a unified grid Tasks Object, lane, traffic lights, freespace predicted in one shot Separate output heads for detection, velocity, and intent prediction Planner End-to-end policy network which outputs steering and acceleration Rule based layer based on the flow Perception, Prediction, then Planning If we look at it like this, I really like the backbone models for both. Waymo’s Bird’s Eye View Transformer (BEVFormer) projects multiple camera views into a top-down feature map. Cross-attention then goes and collects spatial cues like object boundaries and lane markings by querying relevant regions from different camera perspectives. It then uses temporal self-attention by attending to past BEV frames to capture motion cues and ensure consistency across predictions.\nHere’s some pseudo-code I found online representing what the BEVFormer architecture looks like:\nB, V, C, H, W = 2, 6, 128, 256, 256 # batch, views (cams), channels, height, width # 1) Backbone encodes each camera frame cam_feats = backbone(frames.view(B*V, 3, H, W)) # -\u003e [B*V, C, H/4, W/4] cam_feats = cam_feats.view(B, V, C, H//4, W//4) # 2) Lift‑Splat to bird’s‑eye bev_feats = lift_splat(cam_feats, intrinsics, extrinsics) # [B, C, X, Y] # 3) Fuse lidar voxels via cross‑attention lidar_vox = voxelize(lidar_points) # [B, C, X, Y] bev_fused = bev_xattn(bev_feats, lidar_vox) # transformer cross‑attn # 4) Detection queries (DETR‑style) queries = torch.zeros(B, 900, 256) # learnable object queries obj_feats = transformer_decoder(queries, bev_fused) # 5) Heads → 3‑D boxes and class probs boxes_3d, cls_logits = box_head(obj_feats) Tesla’s HydraNet has some similarities but also some differences. It combines a CNN-based feature extraction with transofrmer-based fusion layers and temporal modules. Tesla uses a RegNet architecture (a CNN super similar to ResNet) for initial feature extraction. ConvLSTM units build short-term temporal awareness with a final Feature Pyramind Network for multi-scale processing. They then feed these features into transformer-based cross-attention blocks which learn to combine information across all cameras to build a multi view representation.\nHere’s some pseudocode of how the single, shared backbone HydraNet works:\n# Tiny pseudo-HydraNet head in PyTorch x = shared_backbone(frames) # [B, C, H, W] lanes = lane_head(x) # [B, 4, H/4, W/4] objects = obj_head(x) # [B, 256, 7] # 3-D boxes voxels = occ_decoder(x) # [B, 80, 200, 200] policy = policy_mlp(torch.cat([voxels.flatten(1), ego_state], dim=-1)) Main tradeoffs:\nTesla trades modularity (learning various features about your current driving status) for latency \u0026 data efficiency. All features are learned jointly in their network.\nWaymo has a very modular stack, letting the engineers patch the prediction layer without re-training perception.\nTesla camera frames become a 3-D voxel occupancy grid consumed by the planner.\nBEVFormer fuses six camera views into a single bird’s-eye representation.\nData Engine Tesla Fleet Learning\nThis is the main power behind Tesla in my opinion. If you ask anyone what you need to make a good machine learning model, they are almost always going to say it’s the data you have to feed into the model.\nTesla gets billions of fresh frames per day. Every single person who drives a tesla is quietly feeding in data back to their HQ where they probably run auto-labeling with minimal human intervention (probably only for edge cases).\nWith time and as more teslas are on the road, you can only imagine how well they are going to fine tune their models.\nWaymo’s Curation\nWaymo actually open sourced their initial dataset, full of multi-sensor, hand-labeled data. They then ran multiple Carla-style simulations that generate rare crashes, rain, snow and then feed these into their lidar and camera networks.\n^^ fix please ^^\nHere, we see that Waymo’s edge is high quality labels and diverse sensor modalities. On the flip side, Tesla’s edge is it’s scale. And that scale is going to rise exponentially with more robotaxis and personal teslas on the road.\nTraining Muscle Tesla Waymo Silicon Dojo D1 ASCICs + 50K NVIDIA H100 Google Cloud TPU v5p pods Frameworks PyTorch, custom graph compiler JAX + Flax Batch Sizes Up to 600K frames per step (mixed from all cameras) 256 x 12-sensor slices per step Essentially, we can see that:\nTesla’s strategy is to drown the net in cheap, plentiful video -\u003e needs ultra-large batches.\nWaymo’s strategy is to feed the net richer examples (video + depth + doppler (same as doppler effect)).\nI don’t think there is a clear winner here, they just have differnet training methods because of differnet network architectures.\nEdge-Case handling This might be the most important section because edge cases are 80% of the difficulty of autonomous driving.\nLet’s take 3 examples:\nBlinding Sun at Dawn - Tesla applies temporal HDR stacking: producing high quality dynamic range images by combining multiple frames over time, not just multiple exposures at once.\nWaymo downgrades from vision to radar/lidar depth if cams wash out. Safety built in.\nSnow-Covered Lane Lines - Tesla leans on priors from it’s occupancy network.\nWaymo still “sees” road edges in lidar retruns.\nSandstorm in Nevada - Tesla hopes radar + optical flow catch moving blobs.\nWaymo’s lidar can punch through this entirely.\nRobustness today favors Waymo but Tesla’s curve is rising fast as data piles in.\nLocalization Tesla uses real-time visual SLAM (Simultaneous Localization and Mapping). It means the car is figuring out where it is while also building a map of the environment at the same time. We can think of it like watching the world through a camera feed and just from that, figuring out the 3D space you are moving through. With the fleet of teslas on the road, each one would help add and refine the “neural map” of cubrs, signs, etc without a pre-survey of the area.\nWaymo uses centimeter-grade HD maps built before service launch. It offloads perception workload but pins expansion to survey trucks.\nAdding one new U.S. city:\nTesla: ~4 weeks Waymo: ~8-12 months I think it’s pretty easy to see which one is more scalable and efficient.\nConclusion Once tesla is out of it’s pilot phase, they aim to charge $0.20 per mile.\nWaymo is currently charging anywhere between $0.50 - $1.20 per mile in Phoenix right now.\nFor tesla, they already produce their cars at a pretty low price (~$38000) and easily have the ability to tap into the retail car pipeline to build out these robotaxis. If they nail full stack vision, the cost curve and vision only ability is going to make this a monopoly.\nFor waymo, they definitely have a leg up on edge cases because of the redundancy baked into it. However, it is not easy to scale at all (~$200000 per vehicle) and the geo-fencing makes it feel more like a rule-based system rather than an actual autonomous driver.\nAt the end of the day, we don’t know which one will actually take off. Tesla seems promising but if it keeps failing on edge cases, the world will quickly realize that Waymo was right about having lidar as redudancy.\nIt’s the age old trade off but now wrapped in cars that drive themselves: simplicity \u0026 scalability vs. durability \u0026 redundancy.\n",
   "wordCount" : "1645",
   "inLanguage": "en",
-  "datePublished": "2025-06-24T18:12:56-04:00",
-  "dateModified": "2025-06-24T18:12:56-04:00",
+  "datePublished": "2025-07-01T00:00:00Z",
+  "dateModified": "2025-07-01T00:00:00Z",
   "author":{
     "@type": "Person",
     "name": "Computer Vision \u0026 Personal Opinions"
@@ -221,9 +221,9 @@
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      Why I think Tesla&#39;s Robotaxi will do laps on Waymo
+      Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR
     </h1>
-    <div class="post-meta"><span title='2025-06-24 18:12:56 -0400 EDT'>June 24, 2025</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;Computer Vision &amp; Personal Opinions
+    <div class="post-meta"><span title='2025-07-01 00:00:00 +0000 UTC'>July 1, 2025</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;Computer Vision &amp; Personal Opinions
 
 </div>
   </header> 

@@ -5,9 +5,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>Designing and building a Rate Limiter | Akhil’s Blog</title>
+<title>Designing &amp; Building a Rate Limiter | Akhil’s Blog</title>
 <meta name="keywords" content="">
-<meta name="description" content="I had two goals: 1) Understand how the internals of a rate limiter work (it seemed deciptevely simple) and 2) Create a reusable framework that I can use for my own projects.">
+<meta name="description" content="After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp; play framework">
 <meta name="author" content="Building software">
 <link rel="canonical" href="https://akhilvreddy.github.io/posts/rlaas/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -57,16 +57,16 @@
     </style>
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/rlaas/">
   <meta property="og:site_name" content="Akhil’s Blog">
-  <meta property="og:title" content="Designing and building a Rate Limiter">
-  <meta property="og:description" content="I had two goals: 1) Understand how the internals of a rate limiter work (it seemed deciptevely simple) and 2) Create a reusable framework that I can use for my own projects.">
+  <meta property="og:title" content="Designing & Building a Rate Limiter">
+  <meta property="og:description" content="After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp; play framework">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2025-04-30T18:12:56-04:00">
     <meta property="article:modified_time" content="2025-04-30T18:12:56-04:00">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Designing and building a Rate Limiter">
-<meta name="twitter:description" content="I had two goals: 1) Understand how the internals of a rate limiter work (it seemed deciptevely simple) and 2) Create a reusable framework that I can use for my own projects.">
+<meta name="twitter:title" content="Designing &amp; Building a Rate Limiter">
+<meta name="twitter:description" content="After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp; play framework">
 
 
 <script type="application/ld+json">
@@ -83,7 +83,7 @@
     {
       "@type": "ListItem",
       "position":  2 ,
-      "name": "Designing and building a Rate Limiter",
+      "name": "Designing \u0026 Building a Rate Limiter",
       "item": "https://akhilvreddy.github.io/posts/rlaas/"
     }
   ]
@@ -93,14 +93,14 @@
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "Designing and building a Rate Limiter",
-  "name": "Designing and building a Rate Limiter",
-  "description": "I had two goals: 1) Understand how the internals of a rate limiter work (it seemed deciptevely simple) and 2) Create a reusable framework that I can use for my own projects.",
+  "headline": "Designing \u0026 Building a Rate Limiter",
+  "name": "Designing \u0026 Building a Rate Limiter",
+  "description": "After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug \u0026amp; play framework",
   "keywords": [
     
   ],
-  "articleBody": "",
-  "wordCount" : "0",
+  "articleBody": "One weekend, I accidentally queued over 300 jobs on my dev server — which, unfortunately, had my credit card linked to Google Colab. That was not fun. It left me staring at usage alerts I did not want to see.\nThat was a wake-up call telling me that I needed guardrails. Not just to avoid racking up bills, but to actually understand how to build those guardrails myself.\nSo I decided to design and build my own rate limiter, tailored to my workflows. In this post, I’ll break down the design decisions, tradeoffs, and then walk through the actual build. The attached github repository is here\nDesigning my Rate Limiter Why Rate Limiters Matter \u0026 Why I Wanted to Build One A rate limiter is one of those systems you don’t think about — until you spam your own backend and everything goes sideways.\nRate limiting is how apps like Twitter or Instagram keep bots from flooding feeds, how APIs protect themselves from abuse, and how systems stay resilient under pressure. Whether it’s external users, internal scripts, or even your own code gone rogue, a rate limiter puts guardrails around how much and how often something can make requests.\nIn my case, I wasn’t trying to rebuild Cloudflare or engineer a globally distributed throttler. At first glance, a rate limiter seemed deceptively simple — just track how many requests someone makes and cut them off if they go too far. But once I started reading more, I realized it touches on systems-level problems that are easy to underestimate.\nThat’s when I decided to build my own. Not a production-grade service — just something clean and reusable that I could drop into personal projects to stop them from burning through compute or money.\nI wanted to understand:\nHow to track and enforce limits accurately What happens when multiple requests land at the same time What it means for a rate limiter to be fair and efficient This project became a deep dive into concurrency, timing edge cases, and real-world tradeoffs — all wrapped inside what initially looked like a tiny utility.\nWhat Real-World Rate Limiters Look Like at Scale •\tBriefly describe how big players do it: •\tMulti-region distributed systems •\tRedis + Lua scripting •\tToken buckets across clusters •\tSharded counters and per-IP memory caps •\tGoal: Set the bar you’re not trying to hit — this builds trust. Show you’re aware of the “real” thing. What I want my Rate Limiter to be — and the tradeoffs •\tDesign goals: Simple, clean, testable, modular. Good for a personal project, internal tooling, or early-stage startup. •\tChoices you’ll make: •\tIn-memory vs Redis-backed •\tToken Bucket vs Sliding Window vs Fixed Window •\tGlobal limit vs per-user vs per-endpoint •\tTradeoffs: •\t“Won’t persist across restarts” •\t“Not distributed (yet)” •\t“No hard failover, but it’s testable and fast” With that, I’ll get started with building my rate limiter.\nBuilding my Rate Limiter Future steps (if I had time) Where I’d Take It Next •\tReal systems need: •\tRace-condition protection •\tMulti-node shared state (Redis, Memcached, etc) •\tQueueing vs rejecting requests •\tRate limiting by IP / Auth token •\tPer-endpoint limits •\tAdaptive rate limiting (dynamic thresholds)\n",
+  "wordCount" : "542",
   "inLanguage": "en",
   "datePublished": "2025-04-30T18:12:56-04:00",
   "dateModified": "2025-04-30T18:12:56-04:00",
@@ -221,12 +221,64 @@
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      Designing and building a Rate Limiter
+      Designing &amp; Building a Rate Limiter
     </h1>
-    <div class="post-meta"><span title='2025-04-30 18:12:56 -0400 EDT'>April 30, 2025</span>&nbsp;·&nbsp;0 min&nbsp;·&nbsp;Building software
+    <div class="post-meta"><span title='2025-04-30 18:12:56 -0400 EDT'>April 30, 2025</span>&nbsp;·&nbsp;3 min&nbsp;·&nbsp;Building software
 
 </div>
   </header> 
+  <div class="post-content"><p>One weekend, I accidentally queued over 300 jobs on my dev server — which, unfortunately, had my credit card linked to Google Colab. That was not fun. It left me staring at usage alerts I did not want to see.</p>
+<p>That was a wake-up call telling me that I needed guardrails. Not just to avoid racking up bills, but to actually understand how to build those guardrails myself.</p>
+<p>So I decided to design and build my own rate limiter, tailored to my workflows. In this post, I’ll break down the design decisions, tradeoffs, and then walk through the actual build. The attached github repository is <a href="http://github.com/akhilvreddy/agent-tools">here</a></p>
+<hr>
+<h2 id="designing-my-rate-limiter">Designing my Rate Limiter<a hidden class="anchor" aria-hidden="true" href="#designing-my-rate-limiter">#</a></h2>
+<h3 id="why-rate-limiters-matter--why-i-wanted-to-build-one">Why Rate Limiters Matter &amp; Why I Wanted to Build One<a hidden class="anchor" aria-hidden="true" href="#why-rate-limiters-matter--why-i-wanted-to-build-one">#</a></h3>
+<p>A rate limiter is one of those systems you don’t think about — until you spam your own backend and everything goes sideways.</p>
+<p>Rate limiting is how apps like Twitter or Instagram keep bots from flooding feeds, how APIs protect themselves from abuse, and how systems stay resilient under pressure. Whether it’s external users, internal scripts, or even your own code gone rogue, a rate limiter puts guardrails around how much and how often something can make requests.</p>
+<p>In my case, I wasn’t trying to rebuild Cloudflare or engineer a globally distributed throttler. At first glance, a rate limiter seemed deceptively simple — just track how many requests someone makes and cut them off if they go too far. But once I started reading more, I realized it touches on systems-level problems that are easy to underestimate.</p>
+<p>That’s when I decided to build my own. Not a production-grade service — just something clean and reusable that I could drop into personal projects to stop them from burning through compute or money.</p>
+<p>I wanted to understand:</p>
+<ul>
+<li>How to track and enforce limits accurately</li>
+<li>What happens when multiple requests land at the same time</li>
+<li>What it means for a rate limiter to be fair and efficient</li>
+</ul>
+<p>This project became a deep dive into concurrency, timing edge cases, and real-world tradeoffs — all wrapped inside what initially looked like a tiny utility.</p>
+<h3 id="what-real-world-rate-limiters-look-like-at-scale">What Real-World Rate Limiters Look Like at Scale<a hidden class="anchor" aria-hidden="true" href="#what-real-world-rate-limiters-look-like-at-scale">#</a></h3>
+<pre><code>•	Briefly describe how big players do it:
+•	Multi-region distributed systems
+•	Redis + Lua scripting
+•	Token buckets across clusters
+•	Sharded counters and per-IP memory caps
+•	Goal: Set the bar you’re not trying to hit — this builds trust. Show you’re aware of the “real” thing.
+</code></pre>
+<h3 id="what-i-want-my-rate-limiter-to-be--and-the-tradeoffs">What I want my Rate Limiter to be — and the tradeoffs<a hidden class="anchor" aria-hidden="true" href="#what-i-want-my-rate-limiter-to-be--and-the-tradeoffs">#</a></h3>
+<pre><code>•	Design goals: Simple, clean, testable, modular. Good for a personal project, internal tooling, or early-stage startup.
+•	Choices you’ll make:
+•	In-memory vs Redis-backed
+•	Token Bucket vs Sliding Window vs Fixed Window
+•	Global limit vs per-user vs per-endpoint
+•	Tradeoffs:
+•	“Won’t persist across restarts”
+•	“Not distributed (yet)”
+•	“No hard failover, but it’s testable and fast”
+</code></pre>
+<p>With that, I&rsquo;ll get started with building my rate limiter.</p>
+<hr>
+<h2 id="building-my-rate-limiter">Building my Rate Limiter<a hidden class="anchor" aria-hidden="true" href="#building-my-rate-limiter">#</a></h2>
+<hr>
+<h2 id="future-steps-if-i-had-time">Future steps (if I had time)<a hidden class="anchor" aria-hidden="true" href="#future-steps-if-i-had-time">#</a></h2>
+<p>Where I’d Take It Next
+•	Real systems need:
+•	Race-condition protection
+•	Multi-node shared state (Redis, Memcached, etc)
+•	Queueing vs rejecting requests
+•	Rate limiting by IP / Auth token
+•	Per-endpoint limits
+•	Adaptive rate limiting (dynamic thresholds)</p>
+
+
+  </div>
 
   <footer class="post-footer">
     <ul class="post-tags">

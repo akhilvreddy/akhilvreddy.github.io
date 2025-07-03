@@ -6,14 +6,21 @@
     <description>Recent content in Vae on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 27 Jan 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 27 May 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/tags/vae/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Why VAEs Changed the Way I Think About Modeling</title>
+      <title>Fun with LoRA: How Low-Rank Can We Go Before Adjacency Matrices Break Down?</title>
+      <link>https://akhilvreddy.github.io/posts/tiny-lora/</link>
+      <pubDate>Tue, 27 May 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/tiny-lora/</guid>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+    </item>
+    <item>
+      <title>Why VAEs changed the way I think about modeling</title>
       <link>https://akhilvreddy.github.io/posts/vae/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/vae/</guid>
-      <description>VAEs were my own introduction to machine learning and I was stuck understanding how machine learning goes from linear regression to this. However, I did end up a lot on this non-traditional path.</description>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
     </item>
   </channel>
 </rss>

@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><meta charset="utf-8">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="noindex, nofollow">
 <title>What are Xavier and He initializations? Why do they (almost always) help our eval? | Akhil’s Blog</title>
 <meta name="keywords" content="word2vec, embeddings, nlp">
-<meta name="description" content="Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
+<meta name="description" content="Both of these are things I&rsquo;ve always thrown into PyTorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
 <meta name="author" content="ML Theory &#43; Code">
-<link rel="canonical" href="https://akhilvreddy.github.io/posts/initialization/">
+<link rel="canonical" href="http://localhost:1313/posts/initialization/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://akhilvreddy.github.io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="https://akhilvreddy.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://akhilvreddy.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://akhilvreddy.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://akhilvreddy.github.io/safari-pinned-tab.svg">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://akhilvreddy.github.io/posts/initialization/">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/initialization/">
 <noscript>
     <style>
         #theme-toggle,
@@ -55,76 +55,7 @@
         }
 
     </style>
-</noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/initialization/">
-  <meta property="og:site_name" content="Akhil’s Blog">
-  <meta property="og:title" content="What are Xavier and He initializations? Why do they (almost always) help our eval?">
-  <meta property="og:description" content="Both of these are things I’ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
-  <meta property="og:locale" content="en-us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-01-04T18:12:56-04:00">
-    <meta property="article:modified_time" content="2025-01-04T18:12:56-04:00">
-    <meta property="article:tag" content="Word2vec">
-    <meta property="article:tag" content="Embeddings">
-    <meta property="article:tag" content="Nlp">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="What are Xavier and He initializations? Why do they (almost always) help our eval?">
-<meta name="twitter:description" content="Both of these are things I&rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://akhilvreddy.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "What are Xavier and He initializations? Why do they (almost always) help our eval?",
-      "item": "https://akhilvreddy.github.io/posts/initialization/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "What are Xavier and He initializations? Why do they (almost always) help our eval?",
-  "name": "What are Xavier and He initializations? Why do they (almost always) help our eval?",
-  "description": "Both of these are things I\u0026rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.",
-  "keywords": [
-    "word2vec", "embeddings", "nlp"
-  ],
-  "articleBody": "Deep neural networks suffer from vanishing or exploding activations and gradients, especially as the number of layers increases. This makes it hard for the model to learn, because gradients either:\nBecome tiny -\u003e layers don’t learn -\u003e training stalls Become massive -\u003e weights blow up -\u003e unstable training (and your compute gets shot) This issue happens in both the forward pass and the backward pass.\nIn the forward pass,\nIf activations shrink layer after layer (because of ReLU/Dense layers with small weights), the signal dies out -\u003e vanishing activations If weights are too large, activations can grow layer by layer -\u003e exploding activations In the backward pass,\nBackprop multiplies gradients through the layers via the chain rule If each gradient term is \u003c 1, they shrink exponentially -\u003e vanishing gradients if \u003e 1, they grow -\u003e exploding gradients On top of this, if you choose tanh as an activation function or have a final prediction head that uses a sigmoid, the flat tails of these functions will only exacerbate this issue (small derivative regions).\nIf we look at it from a mathematical standpoint:\nLet’s say suppose we have layers like:\n$$ h^{(l)} = W^{(l)} h^{(l-1)} $$\nThe variance of activations becomes: $$ Var(h^{(l)}) = Var(W^{(l)}) * Var(h^{(l-1)}) $$\nIf ( \\text{Var}(W) \\ne 1 ), this compounding effect leads to vanishing or exploding activations. Hence, our goal is to initialize weights so that: $$ \\text{Var}(h^{(l)}) = \\text{Var}(h^{(l-1)}) $$\n",
-  "wordCount" : "237",
-  "inLanguage": "en",
-  "datePublished": "2025-01-04T18:12:56-04:00",
-  "dateModified": "2025-01-04T18:12:56-04:00",
-  "author":{
-    "@type": "Person",
-    "name": "ML Theory + Code"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://akhilvreddy.github.io/posts/initialization/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Akhil’s Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://akhilvreddy.github.io/favicon.ico"
-    }
-  }
-}
-</script>
+</noscript>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
@@ -149,7 +80,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="https://akhilvreddy.github.io/" accesskey="h" title="Akhil’s Blog (Alt + H)">Akhil’s Blog</a>
+            <a href="http://localhost:1313/" accesskey="h" title="Akhil’s Blog (Alt + H)">Akhil’s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -175,17 +106,17 @@
         </div>
         <ul id="menu">
             <li>
-                <a href="https://akhilvreddy.github.io/" title="Home">
+                <a href="http://localhost:1313/" title="Home">
                     <span>Home</span>
                 </a>
             </li>
             <li>
-                <a href="https://akhilvreddy.github.io/posts/" title="Posts">
+                <a href="http://localhost:1313/posts/" title="Posts">
                     <span>Posts</span>
                 </a>
             </li>
             <li>
-                <a href="https://akhilvreddy.github.io/tooling/" title="Tooling">
+                <a href="http://localhost:1313/tooling/" title="Tooling">
                     <span>Tooling</span>
                 </a>
             </li>
@@ -275,16 +206,16 @@ $$</p>
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://akhilvreddy.github.io/tags/word2vec/">Word2vec</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/embeddings/">Embeddings</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/nlp/">Nlp</a></li>
+      <li><a href="http://localhost:1313/tags/word2vec/">Word2vec</a></li>
+      <li><a href="http://localhost:1313/tags/embeddings/">Embeddings</a></li>
+      <li><a href="http://localhost:1313/tags/nlp/">Nlp</a></li>
     </ul>
   </footer>
 </article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="https://akhilvreddy.github.io/"> </a></span>
+        <span>&copy; 2025 <a href="http://localhost:1313/"> </a></span>
 
 </footer>
 <a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">

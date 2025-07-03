@@ -6,21 +6,21 @@
     <description>Recent content in Hi, I&#39;m Akhil on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 30 Jun 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 01 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Designing and building an AI agentic framework from scratch</title>
+      <title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR</title>
+      <link>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</link>
+      <pubDate>Tue, 01 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</guid>
+      <description>In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.</description>
+    </item>
+    <item>
+      <title>Designing &amp; Building an Agentic AI framework from scratch</title>
       <link>https://akhilvreddy.github.io/posts/agentic-framework/</link>
       <pubDate>Mon, 30 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/agentic-framework/</guid>
       <description>I&amp;rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.</description>
-    </item>
-    <item>
-      <title>Why I think Tesla&#39;s Robotaxi will do laps on Waymo</title>
-      <link>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</link>
-      <pubDate>Tue, 24 Jun 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</guid>
-      <description>In the coming years, I have a feeling that Robotaxi is going to scale like Uber whereas Waymo will scale like Lyft (if even). The comparison becomes lean deep neural networks vs. redundant vision &amp;amp; sensors.</description>
     </item>
     <item>
       <title>Deploying a toy ML model to production</title>
@@ -30,67 +30,67 @@
       <description>I&amp;rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production - I wanted to document what usually happens &lt;em&gt;after&lt;/em&gt; training.</description>
     </item>
     <item>
-      <title>Designing AlphaTicTacToe (and crawling towards AlphaTicTacToeZero)</title>
+      <title>Fun with LoRA: How Low-Rank Can We Go Before Adjacency Matrices Break Down?</title>
+      <link>https://akhilvreddy.github.io/posts/tiny-lora/</link>
+      <pubDate>Tue, 27 May 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/tiny-lora/</guid>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+    </item>
+    <item>
+      <title>Designing AlphaTicTacToe (and AlphaTicTacToeZero)</title>
       <link>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</link>
       <pubDate>Tue, 20 May 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</guid>
       <description>AlphaGo blew my mind and AlphaGoZero was the cherry on top. Recreating this in a simple environment was a long term dream of mine.</description>
     </item>
     <item>
-      <title>Designing and building a Rate Limiter</title>
+      <title>Designing &amp; Building a Rate Limiter</title>
       <link>https://akhilvreddy.github.io/posts/rlaas/</link>
       <pubDate>Wed, 30 Apr 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/rlaas/</guid>
-      <description>I had two goals: 1) Understand how the internals of a rate limiter work (it seemed deciptevely simple) and 2) Create a reusable framework that I can use for my own projects.</description>
+      <description>After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp;amp; play framework</description>
     </item>
     <item>
-      <title>Designing and building a CLI-only Vault Manager (like a simple HashiCorp Vault)</title>
-      <link>https://akhilvreddy.github.io/posts/tinyvault/</link>
-      <pubDate>Fri, 04 Apr 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/tinyvault/</guid>
-      <description>At first I thought that these tools have two main workflows within them: store and fetch. I quickly learned that these are actually encryption behemoths and I wanted to build that by myself.</description>
+      <title>Can a EMNIST model run on an Amazon Kindle from 2012?</title>
+      <link>https://akhilvreddy.github.io/posts/quantized-emnist/</link>
+      <pubDate>Thu, 10 Apr 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/quantized-emnist/</guid>
+      <description>What happens when you take a modern ML model, quantize it like crazy, and try to deploy it on decade-old hardware (a potato)? I tested EMNIST on the edge — literally.</description>
     </item>
     <item>
-      <title>Building Transformers and Multi-Head Self Attention from scratch (the brain behind GPT)</title>
+      <title>Building Transformers from scratch: Multi-Head Attention, LayerNorm, and the brain behind ChatGPT</title>
       <link>https://akhilvreddy.github.io/posts/attention-from-scratch/</link>
       <pubDate>Mon, 03 Mar 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/attention-from-scratch/</guid>
-      <description>I felt like I would never understand how LLMs really generate text until I actually create a transformer from scratch and actually code up mutli-head self attention with raw PyTorch.</description>
+      <description>I felt like I would never understand how LLMs really generate text until I actually create a transformer from scratch and actually code up multi-head self attention with non-modular, functional-style PyTorch.</description>
     </item>
     <item>
-      <title>How did we get to Transformers? The rise of the Attention Mechanism</title>
+      <title>How did we get to Transformers? The rise of Attention</title>
       <link>https://akhilvreddy.github.io/posts/attention-beginnings/</link>
       <pubDate>Fri, 28 Feb 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/attention-beginnings/</guid>
       <description>Attention is really useful but just like any great invention, it was built out of necessity for the problems at hand. In this post, I aim to dive into the issues researchers were dealing with between 2013-2017.</description>
     </item>
     <item>
-      <title>Why VAEs Changed the Way I Think About Modeling</title>
+      <title>Why VAEs changed the way I think about modeling</title>
       <link>https://akhilvreddy.github.io/posts/vae/</link>
       <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/vae/</guid>
-      <description>VAEs were my own introduction to machine learning and I was stuck understanding how machine learning goes from linear regression to this. However, I did end up a lot on this non-traditional path.</description>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
     </item>
     <item>
       <title>Word2Vec from scratch: Intuition to Implementation</title>
       <link>https://akhilvreddy.github.io/posts/word2vec-scratch/</link>
       <pubDate>Fri, 10 Jan 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/word2vec-scratch/</guid>
-      <description>Q(king) - Q(man) + Q(woman) ≈ Q(queen) is beautiful but the approach we take to get there is even cooler. In this post, I wanted to dive into how these emergent properties come to be.</description>
-    </item>
-    <item>
-      <title>What are Xavier and He initializations? Why do they (almost always) help our eval?</title>
-      <link>https://akhilvreddy.github.io/posts/initialization/</link>
-      <pubDate>Sat, 04 Jan 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/initialization/</guid>
-      <description>Both of these are things I&amp;rsquo;ve always thrown into Pytorch and they usually gave me better evals, but I never understood why and how they work under the hood.</description>
+      <description>Q(king) - Q(man) + Q(woman) ≈ Q(queen) is beautiful but the approach we take to get there is even cooler. I wanted to dive into how these emergent properties come to be and the bottlenecks we face.</description>
     </item>
     <item>
       <title>My goals for this blog</title>
       <link>https://akhilvreddy.github.io/posts/first-post/</link>
       <pubDate>Sun, 29 Dec 2024 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/first-post/</guid>
-      <description>I guess I&amp;rsquo;m writing a blog now</description>
+      <description>I guess I&amp;rsquo;m writing a blog now.</description>
     </item>
     <item>
       <title>Tooling 🔧</title>
