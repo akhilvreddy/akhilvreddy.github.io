@@ -27,14 +27,14 @@
       <link>https://akhilvreddy.github.io/posts/deploying-model/</link>
       <pubDate>Sat, 14 Jun 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/deploying-model/</guid>
-      <description>I&amp;rsquo;ve trained hundreds of models in school and on my own, but less than 5% of them have been pushed to production - I wanted to document what usually happens &lt;em&gt;after&lt;/em&gt; training.</description>
+      <description>I&amp;rsquo;ve trained hundreds of models in school and on my own, but barely any of them were served or pushed to production - I wanted to document what usually happens &lt;em&gt;after&lt;/em&gt; training.</description>
     </item>
     <item>
-      <title>Fun with LoRA: How Low-Rank Can We Go Before Adjacency Matrices Break Down?</title>
+      <title>Fun with LoRA: How low-rank can we go before adjacency matrices break down?</title>
       <link>https://akhilvreddy.github.io/posts/tiny-lora/</link>
       <pubDate>Tue, 27 May 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/tiny-lora/</guid>
-      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+      <description>How far can you compress adjacency matrices before everything falls apart? I pushed LoRA to its limits and watched adjacency melt into noise.</description>
     </item>
     <item>
       <title>Designing AlphaTicTacToe (and AlphaTicTacToeZero)</title>
@@ -42,13 +42,6 @@
       <pubDate>Tue, 20 May 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</guid>
       <description>AlphaGo blew my mind and AlphaGoZero was the cherry on top. Recreating this in a simple environment was a long term dream of mine.</description>
-    </item>
-    <item>
-      <title>Designing &amp; Building a Rate Limiter</title>
-      <link>https://akhilvreddy.github.io/posts/rlaas/</link>
-      <pubDate>Wed, 30 Apr 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/rlaas/</guid>
-      <description>After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp;amp; play framework</description>
     </item>
     <item>
       <title>Can a EMNIST model run on an Amazon Kindle from 2012?</title>
@@ -70,13 +63,6 @@
       <pubDate>Fri, 28 Feb 2025 18:12:56 -0400</pubDate>
       <guid>https://akhilvreddy.github.io/posts/attention-beginnings/</guid>
       <description>Attention is really useful but just like any great invention, it was built out of necessity for the problems at hand. In this post, I aim to dive into the issues researchers were dealing with between 2013-2017.</description>
-    </item>
-    <item>
-      <title>Why VAEs changed the way I think about modeling</title>
-      <link>https://akhilvreddy.github.io/posts/vae/</link>
-      <pubDate>Mon, 27 Jan 2025 00:00:00 +0000</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/vae/</guid>
-      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
     </item>
     <item>
       <title>Word2Vec from scratch: Intuition to Implementation</title>

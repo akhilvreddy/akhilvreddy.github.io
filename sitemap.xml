@@ -3,24 +3,15 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://akhilvreddy.github.io/</loc>
-    <lastmod>2025-07-01T00:00:00+00:00</lastmod>
+    <lastmod>2025-07-08T18:12:56-04:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/</loc>
-    <lastmod>2025-07-01T00:00:00+00:00</lastmod>
+    <lastmod>2025-07-08T18:12:56-04:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</loc>
     <lastmod>2025-07-01T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://akhilvreddy.github.io/tags/agentic-systems/</loc>
-    <lastmod>2025-06-30T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://akhilvreddy.github.io/posts/agentic-framework/</loc>
-    <lastmod>2025-06-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/tags/machine-learning/</loc>
-    <lastmod>2025-06-30T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/tags/</loc>
     <lastmod>2025-06-30T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/deploying-model/</loc>
@@ -29,23 +20,8 @@
     <loc>https://akhilvreddy.github.io/posts/tiny-lora/</loc>
     <lastmod>2025-05-27T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://akhilvreddy.github.io/tags/vae/</loc>
-    <lastmod>2025-05-27T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</loc>
     <lastmod>2025-05-20T18:12:56-04:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/tags/embeddings/</loc>
-    <lastmod>2025-05-20T18:12:56-04:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/tags/nlp/</loc>
-    <lastmod>2025-05-20T18:12:56-04:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/tags/word2vec/</loc>
-    <lastmod>2025-05-20T18:12:56-04:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/posts/rlaas/</loc>
-    <lastmod>2025-04-30T18:12:56-04:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/quantized-emnist/</loc>
     <lastmod>2025-04-10T18:12:56-04:00</lastmod>
@@ -56,9 +32,6 @@
     <loc>https://akhilvreddy.github.io/posts/attention-beginnings/</loc>
     <lastmod>2025-02-28T18:12:56-04:00</lastmod>
   </url><url>
-    <loc>https://akhilvreddy.github.io/posts/vae/</loc>
-    <lastmod>2025-01-27T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://akhilvreddy.github.io/posts/word2vec-scratch/</loc>
     <lastmod>2025-01-10T18:12:56-04:00</lastmod>
   </url><url>
@@ -66,6 +39,8 @@
     <lastmod>2024-12-29T18:12:56-04:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/categories/</loc>
+  </url><url>
+    <loc>https://akhilvreddy.github.io/tags/</loc>
   </url><url>
     <loc>https://akhilvreddy.github.io/tooling/</loc>
   </url>

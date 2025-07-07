@@ -6,9 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
 <title>How did we get to Transformers? The rise of Attention | Akhil’s Blog</title>
-<meta name="keywords" content="word2vec, embeddings, nlp">
+<meta name="keywords" content="">
 <meta name="description" content="Attention is really useful but just like any great invention, it was built out of necessity for the problems at hand. In this post, I aim to dive into the issues researchers were dealing with between 2013-2017.">
-<meta name="author" content="ML Theory &#43; Code">
+<meta name="author" content="ML Theory">
 <link rel="canonical" href="https://akhilvreddy.github.io/posts/attention-beginnings/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://akhilvreddy.github.io/favicon.ico">
@@ -64,9 +64,6 @@
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2025-02-28T18:12:56-04:00">
     <meta property="article:modified_time" content="2025-02-28T18:12:56-04:00">
-    <meta property="article:tag" content="Word2vec">
-    <meta property="article:tag" content="Embeddings">
-    <meta property="article:tag" content="Nlp">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="How did we get to Transformers? The rise of Attention">
 <meta name="twitter:description" content="Attention is really useful but just like any great invention, it was built out of necessity for the problems at hand. In this post, I aim to dive into the issues researchers were dealing with between 2013-2017.">
@@ -100,16 +97,16 @@
   "name": "How did we get to Transformers? The rise of Attention",
   "description": "Attention is really useful but just like any great invention, it was built out of necessity for the problems at hand. In this post, I aim to dive into the issues researchers were dealing with between 2013-2017.",
   "keywords": [
-    "word2vec", "embeddings", "nlp"
+    
   ],
-  "articleBody": "",
-  "wordCount" : "0",
+  "articleBody": "Introduction When we learn about attention, transformers, and how ChatGPT works nowadays we are hit with terms like multi-head self attention coupled with layernorm, RLHF, post-training alignment and more. If we just look at these architectures, they are pretty complicated and they do a really good job of modeling text. I always wondered if researchers woke up and thought of this idea and it ended up working really well. After doing some digging, I started to see that language modeling actually did have some super humble beginnings as I’ll talk about soon.\nHere are the steps I am going to take:\nRule-based modeling ➡️ N-gram ➡️ RNN ➡️ LSTM ➡️ Attention ➡️ Transformers ➡️ Beyond The Dark Ages of Language Modeling We can split this era into two subparts\nELIZA and Rule-Based systems (1960s-1980s) This is when people started to actually take language modeling seirously and tried to build machines that actually talked back to us. The ideas in this era were super simple. Let’s take ELIZA for example. Here’s a sample conversation:\nYou: I need help ELIZA: Why do you need help? You: I feel sad ELIZA: Do you often feel sad? There was no learning, only regex style replacements with template-based pattern matching. During this time, NLP was very symbolic and could not capture any meaning behind what you were saying. Here’s what ELIZA’s source code could have looked like written in python:\nimport re import random rules = [ (r'I need (.*)', [\"Why do you need {0}?\", \"Would it really help you to get {0}?\", \"Are you sure you need {0}?\"]), (r'Why don\\'?t you ([^\\?]*)\\??', [\"Do you really think I don't {0}?\", \"Perhaps eventually I will {0}.\", \"Do you really want me to {0}?\"]), (r'I feel (.*)', [\"Do you often feel {0}?\", \"What makes you feel {0}?\", \"When do you usually feel {0}?\"]), (r'(.*)', [\"Please tell me more.\", \"Let's change focus a bit... Tell me about your family.\", \"Can you elaborate on that?\", \"Why do you say that?\"]) ] def eliza_response(user_input): for pattern, responses in rules: match = re.match(pattern, user_input, re.IGNORECASE) if match: response = random.choice(responses) return response.format(*match.groups()) return \"I'm not sure I understand you fully.\" print(eliza_response(\"I feel anxious about my exams\")) This looks like a piece of code a computer science teacher would yell at a student for writing today, but it was SOTA back in the 60s.\nStatistical NLP (1990s-2000s) This is when people decided to think about probabilty based text modeling. A question I had when I was first reading about this is that why did it take them 20 years to think of going from rule based models to probability models?\nIn the 60s and 70s there was no large corpora to estimate word co-occurrence and getting your hands on fast CPUs to train these models was even harder (and I don’t think doing this was a priority back then). Storage was also super expensive (no cheap S3) and CPUs were extremely slow (megahertz-level). Even if someone wanted to use probability, they couldn’t run it.\nThe key advancements from this era were:\nN-gram models: Bayseian probabilty based modeling P (word | last n words) Hidden Markov Models: ??? Phrase-based translation systems Here is what a tiny trigram model looked like back then (obviously they did not use python):\nfrom collections import defaultdict model = defaultdict(lambda: defaultdict(int)) for w1, w2, w3 in zip(words, words[1:], words[2:]): model[(w1, w2)][w3] += 1 # prediction next_word = max(model[('I', 'am')], key=model[('I', 'am')].get) With this, they were able to capture local context but nothing long-range. True text generation was still a long way to go.\nNeural Networks enter the scene (2010) What did NNs solve? By the late 2000s and early 2010s, researchers tried, tested, and failed over and over with models that were:\nmemorizing rules relying on trigram co-occurrence getting wrecked by unseen phrases They realized that these language models needed to learn patterns, not just repeat exactly what they’ve seen. And what’s better to use than the world’s greatest pattern guesser (neural networks)?\nInstead of assigning a probability to every word, these networks embed words to a latent, continuous space and let learned weights handle the prediction. This gives the model the ability to respond reasonably even to words or phrases it hasn’t seen during training.\nWith neural networks we upgraded from lookup tables to actual intelligence. Not smart yet - but smarter than before.\nHere’s a sample of how neural networks compress meaning into dense vectors which learn similarity through training, unlike previous n-gram models which just count.\nLearnable word embeddings\nimport torch import torch.nn as nn # tiny corpus of 6 words vocab = ['i', 'am', 'happy', 'sad', 'hungry', 'excited'] word_to_ix = {word: i for i, word in enumerate(vocab)} # one-hot encoding for 'happy' one_hot = torch.zeros(len(vocab)) one_hot[word_to_ix['happy']] = 1 print(\"One-hot vector for 'happy':\", one_hot.tolist()) # learning an embedding for each word (no training yet) embedding_dim = 4 embedding = nn.Embedding(num_embeddings=len(vocab), embedding_dim=embedding_dim) # look up embedding for 'happy' word_idx = torch.tensor([word_to_ix['happy']]) vector = embedding(word_idx) print(\"Learned embedding for 'happy':\", vector.detach().numpy()) Now vector would be learned over time, which is solving so many issues that we had before. Trial and error with this showed how promising neural networks are and researchers realized that the game had changed.\nSeq2Seq Once we were able to get solid embeddings and experimenting with neural networks, the next big question researchers wanted to solve was:\n“Could we encode a sentence and then decode it into another one?”\nAnd with that the Sequence-to-Sequence architecture was born. The idea was pretty simple (and kind of reminds me of autoencoders):\nUse one RNN (the encoder) to read an input sentence (word by word) and squish it into a vector (the context) Use another RNN (the decoder) to generate the output sentence again (given the context vector), word by word Here’s a sample workflow\nImage translating\nInput: \"I am hungry\" → Output: \"Je suis faim\" First, the encoder needs to process “I”, “am”, “hungry” sequentially and update it’s hidden state at each word. The hidden state at the last word would essentially end up becoming the summary of the input sentence. The decoder would then take that context vector and try to generate the same sentence, either in the same language (to see how well the model generalized) or in a different language (true translation). If it is going translation, the decoder would now try to generate “Je”, “suis”, “faim”.\nHere’s the model class of seq2seq:\nImports first\nimport torch import torch.nn as nn encoder.py\nclass EncoderRNN(nn.Module): def __init__(self, vocab_size, embed_dim, hidden_dim): super().__init__() self.embedding = nn.Embedding(vocab_size, embed_dim) self.rnn = nn.RNN(embed_dim, hidden_dim, batch_first=True) def forward(self, input_seq): embedded = self.embedding(input_seq) # batch, seq_len, embed_dim outputs, hidden = self.rnn(embedded) # hidden: 1, batch, hidden_dim return hidden # context vector decoder.py\nclass DecoderRNN(nn.Module): def __init__(self, vocab_size, embed_dim, hidden_dim): super().__init__() self.embedding = nn.Embedding(vocab_size, embed_dim) self.rnn = nn.RNN(embed_dim, hidden_dim, batch_first=True) self.out = nn.Linear(hidden_dim, vocab_size) def forward(self, input_step, hidden): embedded = self.embedding(input_step) # batch, 1, embed_dim output, hidden = self.rnn(embedded, hidden) # output: batch, 1, hidden_dim logits = self.out(output.squeeze(1)) # batch, vocab_size return logits, hidden With different training data, this same model architecture can do it all — translation, summarization, Q\u0026A, even captioning. Anything that turned input text into output text was now fair game. For the first time, we weren’t just counting words — we were encoding meaning as vectors and letting the model learn what to do with it.\nLet’s take a look at how they were trained.\nrnn_train.py\n# input_seq and target_seq are [batch_size x seq_len] tensors of word indices # and , are handled in target preprocessing encoder = EncoderRNN(vocab_size=1000, embed_dim=128, hidden_dim=256) decoder = DecoderRNN(vocab_size=1000, embed_dim=128, hidden_dim=256) loss_fn = nn.CrossEntropyLoss() optimizer = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters())) for epoch in range(num_epochs): for input_seq, target_seq in dataloader: encoder_hidden = encoder(input_seq) # 1, batch, hidden_dim decoder_input = target_seq[:, 0].unsqueeze(1) # token decoder_hidden = encoder_hidden loss = 0 for t in range(1, target_seq.size(1)): logits, decoder_hidden = decoder(decoder_input, decoder_hidden) loss += loss_fn(logits, target_seq[:, t]) # predict t-th target token decoder_input = target_seq[:, t].unsqueeze(1) # true token (no sampling) loss.backward() optimizer.step() optimizer.zero_grad() Here, the EncoderRNN reads input sequence and produces a context vector. DecoderRNN uses context to generate output sequence, one token at a time. While training, we feeds in real tokens (target_seq[:, t]) to supervise prediction.\nFinally, we can make our model generate text after training. Before we do that, we would need a vocab hashmap that maps words to numbers.\nvocab\nvocab = {'': 0, '': 1, 'i': 2, 'am': 3, ...} rnn_generation.py\n# input_seq is a tensor like: [2, 3, 5] (mapped words from vocab) encoder_hidden = encoder(input_seq.unsqueeze(0)) # batch size = 1 decoder_input = torch.tensor([[SOS_token]]) # decoder_hidden = encoder_hidden generated_tokens = [] for _ in range(max_length): logits, decoder_hidden = decoder(decoder_input, decoder_hidden) next_token = logits.argmax(dim=1) # greedy decode (use beam search for better sentences) generated_tokens.append(next_token.item()) if next_token.item() == EOS_token: break decoder_input = next_token.unsqueeze(1) # shape: [1, 1] (one resulting word from vocab) This seems pretty nice right? A lot of people believed RNNs were the truth for seq2seq and it quickly became SOTA.\nLSTMs (kind of) to the rescue When the input length started to grow, RNNs would hit a huge bottleneck - they could not encode the entire meaning of the sentence in the hidden state. Since we use the hidden state at the last token as the context vector, it is natural that the information from the beginning of the sequence starts to fade.\nLSTMs (Long-Short term memory) gave us the ability to capture the meaning from our input sentences by helping with long range dependencies. Instead of a single hidden state, LSTMs supercharge this with 3 gates:\nForget gate Input gate Output gate By sending data through all 3 of these gates help the model keep the long term dependencies. This helps us with super long sentences.\nSince I just want to talk about the history here, I won’t dive in to the architecture of LSTMs too much. This is a great post explaing the architecture of LSTMs and the differences between it and RNNs.\nWhy even LSTMs fell short After promising results with seq2seq, LSTMs eventually hit a wall. Imagine watching a 2-hour movie and then being asked to summarize it from memory using only one mental snapshot. That’s what LSTMs were doing. The core issue here? You’re still trying to squeeze the entire meaning of an input into a single fixed-size vector — and hoping the decoder can unpack all that information step-by-step. That works fine for short sentences. But once you go longer, your decoder crumbles from lack of proper information from the fixed-size vector.\nLong-term dependencies still get lost, especially in complex or nuanced sentences There’s no way for the decoder to “peek back” at the original input — it’s flying blind after getting just one vector LSTM’s forget gates can’t remember everything — information gets diluted the longer the input Researchers started realizing:\nWhy are we making the decoder guess from a summary…when we could just let it directly access the full input sequence?\nIn my opinion, this single question laid the groundwork for almost all of the AI tools you see in your life today.\nThe Spark of Attention (2014) The thought of letting the model attend to relevant parts of the input at each step would eventually led to attention.\nLet’s try to walk through integrating attention into our Seq2Seq RNN/LSTM setup.\nThe main goal? To let the the model look back at the entire input sequence and dynamically choose what matters most at every decoding step.\nInstead of relying on a single compressed vector (which was the final hidden state for the encoder) we now compute attention scores at each step. These attention scores measure how relevant each input token is to the current decoding state. These scores are then turned into a weighted average of the encoder’s hidden states, forming a new context vector.\nWe feed that context vector into the decoder, supercharging it with targeted information.\nNow the decoder doesn’t rely on a vague summary anymore. It reaches back and grabs what it needs, one token at a time.\nWe stopped asking the model to remember everything, we just taught it where to look.\nThis was confusing for me when I first learned it too. Here’s an example.\nLet’s revisit translating that short sentence from english to french again:\nInput (English): \"I am hungry\" Target (French): \"Je suis faim\" In the first step, the encoder processes the input. Each word is fed into the model one at a time. We will have 3 hidden states for each time step / input word.\nt=1, “I”, h_1 t=2, “am”, h_2 t=3, “hungry”, h_3 In the next step, the decoder begins generating french. This is the core part:\nWe look at the decoder’s current hidden state (s_t) Compute scores for how much s_t aligns with each encoder state Applying softmax to those scores, we get out attention weights (α) Taking the weighted average of those encoder states is our context vector Context vector + decoder hidden state helps us generate the next word much easier This might make a little bit more sense but I needed a visual to make this click.\nStep 1: Generate “Je” Decoder hidden state is s_1 We can compute alignment scores between s_1 and each encoder state:\nscore(s₁, h₁) = 0.6 score(s₁, h₂) = 0.3 score(s₁, h₃) = 0.1 score is a learned function that compares the decoder’s current state s_n with one of the encoder’s outputs h_n. It outputs a scalar value saying: “How well does input word ‘I’ align with what I’m trying to generate (s₁)?”\nWe apply this to every single token, giving us 3 scores as we see above. Taking the softmax of those 3 scores, we get attention weights.\nThe above table now becomes\n[0.7, 0.2, 0.1] → means decoder will focus most on \"I\" when generating \"Je\" Let’s now repeat the same step for the next word.\nStep 2: Generate “suis” Decoder hidden state is s_2 We can compute alignment scores between s_2 and each encoder state:\nscore(s₂, h₁) = 0.1 score(s₂, h₂) = 0.8 score(s₂, h₃) = 0.1 We don’t even need to calculate softmax here, we know that we’re going to pick score(s₂, h₂) = 0.8. Once again, while generating “suis” we guide our model to foucs on “am”.\nI think you start to get the idea.\nStep 3: Generate “faim” Decoder hidden state is s_3 We can compute alignment scores between s_3 and each encoder state:\nscore(s₃, h₁) = 0.05 score(s₃, h₂) = 0.1 score(s₃, h₃) = 0.85 Guides the model towards “hungry” when predicting faim. We just gave this RNN/LSTM setup superpowers.\nAttention maps help me understand correlation between words well\nInput → I am hungry ----------------------------- Output ↓ Je [0.64, 0.26, 0.10] suis [0.10, 0.80, 0.10] faim [0.05, 0.10, 0.85] Let’s look at how our Seq2Seq model now looks like integrated with attention.\nThe encoder does not change because it still has to do the same job as before: process the input sequence and spit out all the hidden states — one per token.\nclass EncoderRNN(nn.Module): def __init__(self, vocab_size, embed_dim, hidden_dim): super().__init__() self.embedding = nn.Embedding(vocab_size, embed_dim) self.rnn = nn.RNN(embed_dim, hidden_dim, batch_first=True) def forward(self, input_seq): embedded = self.embedding(input_seq) # batch, seq_len, embed_dim outputs, hidden = self.rnn(embedded) # outputs: batch, seq_len, hidden_dim return outputs, hidden # return all outputs, not just the final hidden Note the line change at the end of the forward function, we are now returning all outputs, not just the final hidden state.\nWe need to add an attention class to calculate our scores\nclass AdditiveAttention(nn.Module): def __init__(self, hidden_dim): super().__init__() self.attn = nn.Linear(hidden_dim * 2, hidden_dim) self.v = nn.Linear(hidden_dim, 1, bias=False) def forward(self, decoder_hidden, encoder_outputs): batch_size, seq_len, _ = encoder_outputs.size() decoder_hidden = decoder_hidden.unsqueeze(1).repeat(1, seq_len, 1) concat = torch.cat((decoder_hidden, encoder_outputs), dim=2) energy = torch.tanh(self.attn(concat)) # batch, seq_len, hidden_dim scores = self.v(energy).squeeze(2) # batch, seq_len attn_weights = torch.softmax(scores, dim=1) # batch, seq_len # weighted sum -\u003e context vector context = torch.bmm(attn_weights.unsqueeze(1), encoder_outputs) # batch, 1, hidden_dim return context.squeeze(1), attn_weights # context: batch, hidden_dim We now need to change our decoder for attention\nclass AttnDecoderRNN(nn.Module): def __init__(self, vocab_size, embed_dim, hidden_dim): super().__init__() self.embedding = nn.Embedding(vocab_size, embed_dim) self.rnn = nn.RNN(embed_dim + hidden_dim, hidden_dim, batch_first=True) self.fc_out = nn.Linear(hidden_dim * 2, vocab_size) self.attention = AdditiveAttention(hidden_dim) def forward(self, input_step, hidden, encoder_outputs): embedded = self.embedding(input_step) # batch, 1, embed_dim context, attn_weights = self.attention(hidden.squeeze(0), encoder_outputs) context = context.unsqueeze(1) # batch, 1, hidden_dim rnn_input = torch.cat((embedded, context), dim=2) # batch, 1, embed + hidden output, hidden = self.rnn(rnn_input, hidden) # output: batch, 1, hidden_dim combined = torch.cat((output.squeeze(1), context.squeeze(1)), dim=1) # batch, hidden*2 logits = self.fc_out(combined) # batch, vocab_size return logits, hidden, attn_weights And here’s a simple training loop\nencoder = EncoderRNN(vocab_size, embed_dim, hidden_dim) decoder = AttnDecoderRNN(vocab_size, embed_dim, hidden_dim) loss_fn = nn.CrossEntropyLoss() optimizer = torch.optim.Adam(list(encoder.parameters()) + list(decoder.parameters())) for epoch in range(num_epochs): for input_seq, target_seq in dataloader: encoder_outputs, encoder_hidden = encoder(input_seq) decoder_input = target_seq[:, 0].unsqueeze(1) # decoder_hidden = encoder_hidden loss = 0 for t in range(1, target_seq.size(1)): logits, decoder_hidden, _ = decoder(decoder_input, decoder_hidden, encoder_outputs) loss += loss_fn(logits, target_seq[:, t]) decoder_input = target_seq[:, t].unsqueeze(1) # teacher forcing loss.backward() optimizer.step() optimizer.zero_grad() Instead of forcing the decoder to remember everything from a single context vector, we now let it look back at the full input and dynamically focus on what matters most at each step. This makes our model way more robust, especially for longer or more complex sentences.\nAttention isn’t translating or generating words here — it’s just guiding the decoder towards the right information. The actual “translation” happens because the whole system is trained end-to-end to minimize prediction error.\nUnleashing the power of Attention (2014-2017) After the concept of attention was introduced, the floodgates opened. Researchers quickly realized that attention wasn’t a patch but rather a paradigm shift. Between 2014-2017 people started injecting it everywhere.\nDuring this era:\nMachine translation scores skyrocketed. Attention-augmented seq2seq models crushed RNN/LSTM setups on BLEU scores, especially for longer sentences. Google Translate fully shifted attention based neural models by 2016. We could see where a model was focusing. Attention heatmaps (a more complicated version of what we saw above) made neural networks more interpretable than before. Multiple attention variants came to be. We saw different methods that tuned different parts of the model like heads, layers, and positions. People started using attention in image captioning, speech recognition, and even music generation. It really did become a general purpose way to point at the important parts of the sequence. Researchers started to stack attention layers. Instead of applying attention once per decoding step, stacking attention gave them the ability to feed them deeper into the model architecture. Every year from then out, attention was proving to be more indispensable and RNNs/LSTMs were getting tough to deal with. Some folks at google asked a revolutionary question.\nWhat if we got rid of recurrence entirely?\nNo RNNs. No LSTMs. No GRUs. No sequential processing whatsoever.\nJust attention at every layer, all the way down.\nAnd with that, Attention Is All You Need came to be.\nIt’s kind of beautiful the way we got here, wiht humble beginnings in regex. It really shows that even the hardest of questions can be solved by breaking it down and iterating.\nConclusion If we look carefully, each part gave us a foundation to build off on. At each step, we were able to recognize the benefits, the bottlenecks, and the issues with each architecture. We were then able to look into ways to fix that and slowly we were able to actually do it - a model that understands everything about your input text and can coherently generate output text. And this was possible only with each tiny step that many AI researchers have taken across time.\nI wrote a follow up blog about removing reccurance and how transformers came to be here.\n",
+  "wordCount" : "3299",
   "inLanguage": "en",
   "datePublished": "2025-02-28T18:12:56-04:00",
   "dateModified": "2025-02-28T18:12:56-04:00",
   "author":{
     "@type": "Person",
-    "name": "ML Theory + Code"
+    "name": "ML Theory"
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
@@ -226,16 +223,398 @@
     <h1 class="post-title entry-hint-parent">
       How did we get to Transformers? The rise of Attention
     </h1>
-    <div class="post-meta"><span title='2025-02-28 18:12:56 -0400 -0400'>February 28, 2025</span>&nbsp;·&nbsp;0 min&nbsp;·&nbsp;ML Theory &#43; Code
+    <div class="post-meta"><span title='2025-02-28 18:12:56 -0400 -0400'>February 28, 2025</span>&nbsp;·&nbsp;16 min&nbsp;·&nbsp;ML Theory
 
 </div>
   </header> 
+  <div class="post-content"><h2 id="introduction">Introduction<a hidden class="anchor" aria-hidden="true" href="#introduction">#</a></h2>
+<p>When we learn about attention, transformers, and how ChatGPT works nowadays we are hit with terms like multi-head self attention coupled with layernorm, RLHF, post-training alignment and more. If we just look at these architectures, they are pretty complicated and they do a really good job of modeling text. I always wondered if researchers woke up and thought of this idea and it ended up working really well. After doing some digging, I started to see that language modeling actually did have some super humble beginnings as I&rsquo;ll talk about soon.</p>
+<p>Here are the steps I am going to take:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Rule-based modeling ➡️ N-gram ➡️ RNN ➡️ LSTM ➡️ Attention ➡️ Transformers ➡️ Beyond
+</span></span></code></pre></div><h2 id="the-dark-ages-of-language-modeling">The Dark Ages of Language Modeling<a hidden class="anchor" aria-hidden="true" href="#the-dark-ages-of-language-modeling">#</a></h2>
+<p>We can split this era into two subparts</p>
+<h3 id="eliza-and-rule-based-systems-1960s-1980s">ELIZA and Rule-Based systems (1960s-1980s)<a hidden class="anchor" aria-hidden="true" href="#eliza-and-rule-based-systems-1960s-1980s">#</a></h3>
+<p>This is when people started to actually take language modeling seirously and tried to build machines that actually talked back to us. The ideas in this era were super simple. Let&rsquo;s take ELIZA for example. Here&rsquo;s a sample conversation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>You: I need help
+</span></span><span style="display:flex;"><span>ELIZA: Why do you need help?
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>You: I feel sad
+</span></span><span style="display:flex;"><span>ELIZA: Do you often feel sad?
+</span></span></code></pre></div><p>There was no learning, only regex style replacements with template-based pattern matching. During this time, NLP was very symbolic and could not capture any meaning behind what you were saying. Here&rsquo;s what ELIZA&rsquo;s source code could have looked like written in python:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> re
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>rules <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;I need (.*)&#39;</span>,
+</span></span><span style="display:flex;"><span>     [<span style="color:#e6db74">&#34;Why do you need </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Would it really help you to get </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Are you sure you need </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>]),
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;Why don</span><span style="color:#ae81ff">\&#39;</span><span style="color:#e6db74">?t you ([^\?]*)\??&#39;</span>,
+</span></span><span style="display:flex;"><span>     [<span style="color:#e6db74">&#34;Do you really think I don&#39;t </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Perhaps eventually I will </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">.&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Do you really want me to </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>]),
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;I feel (.*)&#39;</span>,
+</span></span><span style="display:flex;"><span>     [<span style="color:#e6db74">&#34;Do you often feel </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;What makes you feel </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;When do you usually feel </span><span style="color:#e6db74">{0}</span><span style="color:#e6db74">?&#34;</span>]),
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    (<span style="color:#e6db74">r</span><span style="color:#e6db74">&#39;(.*)&#39;</span>,
+</span></span><span style="display:flex;"><span>     [<span style="color:#e6db74">&#34;Please tell me more.&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Let&#39;s change focus a bit... Tell me about your family.&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Can you elaborate on that?&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;Why do you say that?&#34;</span>])
+</span></span><span style="display:flex;"><span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">eliza_response</span>(user_input):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> pattern, responses <span style="color:#f92672">in</span> rules:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">match</span> <span style="color:#f92672">=</span> re<span style="color:#f92672">.</span><span style="color:#66d9ef">match</span>(pattern, user_input, re<span style="color:#f92672">.</span>IGNORECASE)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#66d9ef">match</span>:
+</span></span><span style="display:flex;"><span>            response <span style="color:#f92672">=</span> random<span style="color:#f92672">.</span>choice(responses)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> response<span style="color:#f92672">.</span>format(<span style="color:#f92672">*</span><span style="color:#66d9ef">match</span><span style="color:#f92672">.</span>groups())
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;I&#39;m not sure I understand you fully.&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(eliza_response(<span style="color:#e6db74">&#34;I feel anxious about my exams&#34;</span>))
+</span></span></code></pre></div><p>This looks like a piece of code a computer science teacher would yell at a student for writing today, but it was SOTA back in the 60s.</p>
+<h3 id="statistical-nlp-1990s-2000s">Statistical NLP (1990s-2000s)<a hidden class="anchor" aria-hidden="true" href="#statistical-nlp-1990s-2000s">#</a></h3>
+<p>This is when people decided to think about probabilty based text modeling. A question I had when I was first reading about this is that why did it take them 20 years to think of going from rule based models to probability models?</p>
+<p>In the 60s and 70s there was no large corpora to estimate word co-occurrence and getting your hands on fast CPUs to train these models was even harder (and I don&rsquo;t think doing this was a priority back then). Storage was also super expensive (no cheap S3) and CPUs were extremely slow (megahertz-level). <strong>Even if someone wanted to use probability, they couldn&rsquo;t run it</strong>.</p>
+<p>The key advancements from this era were:</p>
+<ul>
+<li>N-gram models: Bayseian probabilty based modeling P (word | last <code>n</code> words)</li>
+<li>Hidden Markov Models: ???</li>
+<li>Phrase-based translation systems</li>
+</ul>
+<p>Here is what a tiny trigram model looked like back then (obviously they did not use python):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict
+</span></span><span style="display:flex;"><span>model <span style="color:#f92672">=</span> defaultdict(<span style="color:#66d9ef">lambda</span>: defaultdict(int))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> w1, w2, w3 <span style="color:#f92672">in</span> zip(words, words[<span style="color:#ae81ff">1</span>:], words[<span style="color:#ae81ff">2</span>:]):
+</span></span><span style="display:flex;"><span>    model[(w1, w2)][w3] <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># prediction</span>
+</span></span><span style="display:flex;"><span>next_word <span style="color:#f92672">=</span> max(model[(<span style="color:#e6db74">&#39;I&#39;</span>, <span style="color:#e6db74">&#39;am&#39;</span>)], key<span style="color:#f92672">=</span>model[(<span style="color:#e6db74">&#39;I&#39;</span>, <span style="color:#e6db74">&#39;am&#39;</span>)]<span style="color:#f92672">.</span>get)
+</span></span></code></pre></div><p>With this, they were able to capture local context but nothing long-range. True text generation was still a long way to go.</p>
+<hr>
+<h2 id="neural-networks-enter-the-scene-2010">Neural Networks enter the scene (2010)<a hidden class="anchor" aria-hidden="true" href="#neural-networks-enter-the-scene-2010">#</a></h2>
+<h3 id="what-did-nns-solve">What did NNs solve?<a hidden class="anchor" aria-hidden="true" href="#what-did-nns-solve">#</a></h3>
+<p>By the late 2000s and early 2010s, researchers tried, tested, and failed over and over with models that were:</p>
+<ul>
+<li>memorizing rules</li>
+<li>relying on trigram co-occurrence</li>
+<li>getting wrecked by unseen phrases</li>
+</ul>
+<p>They realized that these language models needed to learn patterns, not just repeat exactly what they&rsquo;ve seen. And what&rsquo;s better to use than the world&rsquo;s greatest pattern guesser (neural networks)?</p>
+<p>Instead of assigning a probability to every word, these networks embed words to a latent, continuous space and let learned weights handle the prediction. This gives the model the ability to respond reasonably even to words or phrases it hasn’t seen during training.</p>
+<blockquote>
+<p>With neural networks we upgraded from lookup tables to actual intelligence. Not smart yet - but smarter than before.</p></blockquote>
+<p>Here&rsquo;s a sample of how neural networks compress meaning into dense vectors which learn similarity through training, unlike previous n-gram models which just count.</p>
+<p>Learnable word embeddings</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> torch
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> torch.nn <span style="color:#66d9ef">as</span> nn
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># tiny corpus of 6 words</span>
+</span></span><span style="display:flex;"><span>vocab <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;i&#39;</span>, <span style="color:#e6db74">&#39;am&#39;</span>, <span style="color:#e6db74">&#39;happy&#39;</span>, <span style="color:#e6db74">&#39;sad&#39;</span>, <span style="color:#e6db74">&#39;hungry&#39;</span>, <span style="color:#e6db74">&#39;excited&#39;</span>]
+</span></span><span style="display:flex;"><span>word_to_ix <span style="color:#f92672">=</span> {word: i <span style="color:#66d9ef">for</span> i, word <span style="color:#f92672">in</span> enumerate(vocab)}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># one-hot encoding for &#39;happy&#39;</span>
+</span></span><span style="display:flex;"><span>one_hot <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>zeros(len(vocab))
+</span></span><span style="display:flex;"><span>one_hot[word_to_ix[<span style="color:#e6db74">&#39;happy&#39;</span>]] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;One-hot vector for &#39;happy&#39;:&#34;</span>, one_hot<span style="color:#f92672">.</span>tolist())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># learning an embedding for each word (no training yet)</span>
+</span></span><span style="display:flex;"><span>embedding_dim <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>embedding <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Embedding(num_embeddings<span style="color:#f92672">=</span>len(vocab), embedding_dim<span style="color:#f92672">=</span>embedding_dim)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># look up embedding for &#39;happy&#39;</span>
+</span></span><span style="display:flex;"><span>word_idx <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>tensor([word_to_ix[<span style="color:#e6db74">&#39;happy&#39;</span>]])
+</span></span><span style="display:flex;"><span>vector <span style="color:#f92672">=</span> embedding(word_idx)
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Learned embedding for &#39;happy&#39;:&#34;</span>, vector<span style="color:#f92672">.</span>detach()<span style="color:#f92672">.</span>numpy())
+</span></span></code></pre></div><p>Now <code>vector</code> would be learned over time, which is solving so many issues that we had before. Trial and error with this showed how promising neural networks are and researchers realized that the game had changed.</p>
+<h3 id="seq2seq">Seq2Seq<a hidden class="anchor" aria-hidden="true" href="#seq2seq">#</a></h3>
+<p>Once we were able to get solid embeddings and experimenting with neural networks, the next big question researchers wanted to solve was:</p>
+<p>&ldquo;Could we encode a sentence and then decode it into another one?&rdquo;</p>
+<p>And with that the Sequence-to-Sequence architecture was born. The idea was pretty simple (and kind of reminds me of autoencoders):</p>
+<ul>
+<li>Use one RNN (the encoder) to read an input sentence (word by word) and squish it into a vector (the context)</li>
+<li>Use another RNN (the decoder) to generate the output sentence again (given the context vector), word by word</li>
+</ul>
+<p>Here&rsquo;s a sample workflow</p>
+<p>Image translating</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Input: &#34;I am hungry&#34; → Output: &#34;Je suis faim&#34;
+</span></span></code></pre></div><p>First, the encoder needs to process &ldquo;I&rdquo;, &ldquo;am&rdquo;, &ldquo;hungry&rdquo; sequentially and update it&rsquo;s hidden state at each word. The hidden state at the last word would essentially end up becoming the summary of the input sentence. The decoder would then take that context vector and try to generate the same sentence, either in the same language (to see how well the model generalized) or in a different language (true translation). If it is going translation, the decoder would now try to generate &ldquo;Je&rdquo;, &ldquo;suis&rdquo;, &ldquo;faim&rdquo;.</p>
+<p>Here&rsquo;s the model class of seq2seq:</p>
+<p>Imports first</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> torch
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> torch.nn <span style="color:#66d9ef">as</span> nn
+</span></span></code></pre></div><p>encoder.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EncoderRNN</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, vocab_size, embed_dim, hidden_dim):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>embedding <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Embedding(vocab_size, embed_dim)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>rnn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>RNN(embed_dim, hidden_dim, batch_first<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">forward</span>(self, input_seq):
+</span></span><span style="display:flex;"><span>        embedded <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>embedding(input_seq) <span style="color:#75715e"># batch, seq_len, embed_dim</span>
+</span></span><span style="display:flex;"><span>        outputs, hidden <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>rnn(embedded) <span style="color:#75715e"># hidden: 1, batch, hidden_dim</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> hidden <span style="color:#75715e"># context vector</span>
+</span></span></code></pre></div><p>decoder.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DecoderRNN</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, vocab_size, embed_dim, hidden_dim):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>embedding <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Embedding(vocab_size, embed_dim)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>rnn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>RNN(embed_dim, hidden_dim, batch_first<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>out <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Linear(hidden_dim, vocab_size)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">forward</span>(self, input_step, hidden):
+</span></span><span style="display:flex;"><span>        embedded <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>embedding(input_step) <span style="color:#75715e"># batch, 1, embed_dim</span>
+</span></span><span style="display:flex;"><span>        output, hidden <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>rnn(embedded, hidden) <span style="color:#75715e"># output: batch, 1, hidden_dim</span>
+</span></span><span style="display:flex;"><span>        logits <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>out(output<span style="color:#f92672">.</span>squeeze(<span style="color:#ae81ff">1</span>)) <span style="color:#75715e"># batch, vocab_size</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> logits, hidden
+</span></span></code></pre></div><p>With <strong>different training data, this same model architecture can do it all</strong> — translation, summarization, Q&amp;A, even captioning. Anything that turned input text into output text was now fair game. For the first time, we weren’t just counting words — we were encoding meaning as vectors and letting the model learn what to do with it.</p>
+<p>Let&rsquo;s take a look at how they were trained.</p>
+<p>rnn_train.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># input_seq and target_seq are [batch_size x seq_len] tensors of word indices</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># and &lt;SOS&gt;, &lt;EOS&gt; are handled in target preprocessing</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>encoder <span style="color:#f92672">=</span> EncoderRNN(vocab_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1000</span>, embed_dim<span style="color:#f92672">=</span><span style="color:#ae81ff">128</span>, hidden_dim<span style="color:#f92672">=</span><span style="color:#ae81ff">256</span>)
+</span></span><span style="display:flex;"><span>decoder <span style="color:#f92672">=</span> DecoderRNN(vocab_size<span style="color:#f92672">=</span><span style="color:#ae81ff">1000</span>, embed_dim<span style="color:#f92672">=</span><span style="color:#ae81ff">128</span>, hidden_dim<span style="color:#f92672">=</span><span style="color:#ae81ff">256</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>loss_fn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>CrossEntropyLoss()
+</span></span><span style="display:flex;"><span>optimizer <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>optim<span style="color:#f92672">.</span>Adam(list(encoder<span style="color:#f92672">.</span>parameters()) <span style="color:#f92672">+</span> list(decoder<span style="color:#f92672">.</span>parameters()))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> epoch <span style="color:#f92672">in</span> range(num_epochs):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> input_seq, target_seq <span style="color:#f92672">in</span> dataloader:
+</span></span><span style="display:flex;"><span>        encoder_hidden <span style="color:#f92672">=</span> encoder(input_seq) <span style="color:#75715e"># 1, batch, hidden_dim</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        decoder_input <span style="color:#f92672">=</span> target_seq[:, <span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>) <span style="color:#75715e"># &lt;SOS&gt; token</span>
+</span></span><span style="display:flex;"><span>        decoder_hidden <span style="color:#f92672">=</span> encoder_hidden
+</span></span><span style="display:flex;"><span>        loss <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> t <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, target_seq<span style="color:#f92672">.</span>size(<span style="color:#ae81ff">1</span>)):
+</span></span><span style="display:flex;"><span>            logits, decoder_hidden <span style="color:#f92672">=</span> decoder(decoder_input, decoder_hidden)
+</span></span><span style="display:flex;"><span>            loss <span style="color:#f92672">+=</span> loss_fn(logits, target_seq[:, t]) <span style="color:#75715e"># predict t-th target token</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            decoder_input <span style="color:#f92672">=</span> target_seq[:, t]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>) <span style="color:#75715e"># true token (no sampling)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        loss<span style="color:#f92672">.</span>backward()
+</span></span><span style="display:flex;"><span>        optimizer<span style="color:#f92672">.</span>step()
+</span></span><span style="display:flex;"><span>        optimizer<span style="color:#f92672">.</span>zero_grad()
+</span></span></code></pre></div><p>Here, the <code>EncoderRNN</code> reads input sequence and produces a context vector. <code>DecoderRNN</code> uses context to generate output sequence, one token at a time. While training, we feeds in real tokens <code>(target_seq[:, t])</code> to supervise prediction.</p>
+<p>Finally, we can make our model generate text after training. Before we do that, we would need a vocab hashmap that maps words to numbers.</p>
+<p>vocab</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>vocab <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#39;&lt;SOS&gt;&#39;</span>: <span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#39;&lt;EOS&gt;&#39;</span>: <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">&#39;i&#39;</span>: <span style="color:#ae81ff">2</span>, <span style="color:#e6db74">&#39;am&#39;</span>: <span style="color:#ae81ff">3</span>, <span style="color:#f92672">...</span>}
+</span></span></code></pre></div><p>rnn_generation.py</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># input_seq is a tensor like: [2, 3, 5] (mapped words from vocab)</span>
+</span></span><span style="display:flex;"><span>encoder_hidden <span style="color:#f92672">=</span> encoder(input_seq<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">0</span>)) <span style="color:#75715e"># batch size = 1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>decoder_input <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>tensor([[SOS_token]])  <span style="color:#75715e"># &lt;Start of Sentence&gt;</span>
+</span></span><span style="display:flex;"><span>decoder_hidden <span style="color:#f92672">=</span> encoder_hidden
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>generated_tokens <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(max_length):
+</span></span><span style="display:flex;"><span>    logits, decoder_hidden <span style="color:#f92672">=</span> decoder(decoder_input, decoder_hidden)
+</span></span><span style="display:flex;"><span>    next_token <span style="color:#f92672">=</span> logits<span style="color:#f92672">.</span>argmax(dim<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># greedy decode (use beam search for better sentences)</span>
+</span></span><span style="display:flex;"><span>    generated_tokens<span style="color:#f92672">.</span>append(next_token<span style="color:#f92672">.</span>item())
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> next_token<span style="color:#f92672">.</span>item() <span style="color:#f92672">==</span> EOS_token:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    decoder_input <span style="color:#f92672">=</span> next_token<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>) <span style="color:#75715e"># shape: [1, 1] (one resulting word from vocab)</span>
+</span></span></code></pre></div><p>This seems pretty nice right? A lot of people believed RNNs were the truth for seq2seq and it quickly became SOTA.</p>
+<h3 id="lstms-kind-of-to-the-rescue">LSTMs (kind of) to the rescue<a hidden class="anchor" aria-hidden="true" href="#lstms-kind-of-to-the-rescue">#</a></h3>
+<p>When the input length started to grow, RNNs would hit a huge bottleneck - they could not encode the entire meaning of the sentence in the hidden state. Since we use the hidden state at the last token as the context vector, it is natural that the information from the beginning of the sequence starts to fade.</p>
+<p>LSTMs (Long-Short term memory) gave us the ability to capture the meaning from our input sentences by helping with long range dependencies. Instead of a single hidden state, LSTMs supercharge this with 3 gates:</p>
+<ul>
+<li>Forget gate</li>
+<li>Input gate</li>
+<li>Output gate</li>
+</ul>
+<p>By sending data through all 3 of these gates help the model keep the long term dependencies. This helps us with super long sentences.</p>
+<p>Since I just want to talk about the history here, I won&rsquo;t dive in to the architecture of LSTMs too much. <a href="https://www.geeksforgeeks.org/deep-learning-introduction-to-long-short-term-memory/">This</a> is a great post explaing the architecture of LSTMs and the differences between it and RNNs.</p>
+<h3 id="why-even-lstms-fell-short">Why even LSTMs fell short<a hidden class="anchor" aria-hidden="true" href="#why-even-lstms-fell-short">#</a></h3>
+<p>After promising results with seq2seq, LSTMs eventually hit a wall. Imagine watching a 2-hour movie and then being asked to summarize it from memory using only one mental snapshot. That’s what LSTMs were doing. The core issue here? You&rsquo;re still trying to <strong>squeeze the entire meaning of an input</strong> into a single fixed-size vector — and hoping the decoder can <em>unpack all that information step-by-step</em>. That works fine for short sentences. But once you go longer, your decoder crumbles from lack of proper information from the fixed-size vector.</p>
+<ul>
+<li>Long-term dependencies still get lost, especially in complex or nuanced sentences</li>
+<li>There’s no way for the decoder to “peek back” at the original input — it’s flying blind after getting just one vector</li>
+<li>LSTM’s forget gates can’t remember everything — information gets diluted the longer the input</li>
+</ul>
+<p>Researchers started realizing:</p>
+<blockquote>
+<p><em>Why are we making the decoder guess from a summary…when we could just let it directly access the full input sequence?</em></p></blockquote>
+<p>In my opinion, this single question laid the groundwork for almost all of the AI tools you see in your life today.</p>
+<hr>
+<h2 id="the-spark-of-attention-2014">The Spark of Attention (2014)<a hidden class="anchor" aria-hidden="true" href="#the-spark-of-attention-2014">#</a></h2>
+<p>The thought of letting the model <strong>attend</strong> to relevant parts of the input at each step would eventually led to attention.</p>
+<p>Let&rsquo;s try to walk through integrating attention into our Seq2Seq RNN/LSTM setup.</p>
+<p>The main goal? To let the the model <strong>look back at the entire input sequence</strong> and dynamically choose what matters most at every decoding step.</p>
+<p>Instead of relying on a single compressed vector (which was the final hidden state for the encoder) we now compute attention scores at each step. These attention scores measure <em>how relevant each input token is to the current decoding state</em>. These scores are then turned into a weighted average of the encoder&rsquo;s hidden states, forming a new <strong>context vector</strong>.</p>
+<p>We feed that context vector into the decoder, supercharging it with targeted information.</p>
+<p>Now the decoder doesn’t rely on a vague summary anymore. It reaches back and grabs what it needs, one token at a time.</p>
+<blockquote>
+<p>We stopped asking the model to remember everything, we just taught it where to look.</p></blockquote>
+<p>This was confusing for me when I first learned it too. Here&rsquo;s an example.</p>
+<p>Let&rsquo;s revisit translating that short sentence from english to french again:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Input (English):  &#34;I am hungry&#34;
+</span></span><span style="display:flex;"><span>Target (French):  &#34;Je suis faim&#34;
+</span></span></code></pre></div><p>In the first step, the encoder processes the input. Each word is fed into the model one at a time. We will have 3 hidden states for each time step / input word.</p>
+<ul>
+<li>t=1, &ldquo;I&rdquo;, <code>h_1</code></li>
+<li>t=2, &ldquo;am&rdquo;, <code>h_2</code></li>
+<li>t=3, &ldquo;hungry&rdquo;, <code>h_3</code></li>
+</ul>
+<p>In the next step, the decoder begins generating french. This is the core part:</p>
+<ul>
+<li>We look at the decoder&rsquo;s current hidden state (<code>s_t</code>)</li>
+<li>Compute scores for <strong>how much <code>s_t</code> aligns with each encoder state</strong></li>
+<li>Applying softmax to those scores, we get out <em>attention weights (α)</em></li>
+<li>Taking the weighted average of those encoder states is our <strong>context vector</strong></li>
+<li>Context vector + decoder hidden state helps us generate the next word much easier</li>
+</ul>
+<p>This might make a little bit more sense but I needed a visual to make this click.</p>
+<h4 id="step-1-generate-je">Step 1: Generate &ldquo;Je&rdquo;<a hidden class="anchor" aria-hidden="true" href="#step-1-generate-je">#</a></h4>
+<p>Decoder hidden state is <code>s_1</code>
+We can compute alignment scores between <code>s_1</code> and each encoder state:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>score(s₁, h₁) = 0.6
+</span></span><span style="display:flex;"><span>score(s₁, h₂) = 0.3
+</span></span><span style="display:flex;"><span>score(s₁, h₃) = 0.1
+</span></span></code></pre></div><p><code>score</code> is a learned function that compares the decoder&rsquo;s current state <code>s_n</code> with one of the encoder&rsquo;s outputs <code>h_n</code>. It outputs a scalar value saying: &ldquo;How well does input word &lsquo;I&rsquo; align with what I’m trying to generate (s₁)?&rdquo;</p>
+<p>We apply this to every single token, giving us 3 scores as we see above. Taking the softmax of those 3 scores, we get attention weights.</p>
+<p>The above table now becomes</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>[0.7, 0.2, 0.1] → means decoder will focus most on &#34;I&#34; when generating &#34;Je&#34;
+</span></span></code></pre></div><p>Let&rsquo;s now repeat the same step for the next word.</p>
+<h4 id="step-2-generate-suis">Step 2: Generate &ldquo;suis&rdquo;<a hidden class="anchor" aria-hidden="true" href="#step-2-generate-suis">#</a></h4>
+<p>Decoder hidden state is <code>s_2</code>
+We can compute alignment scores between <code>s_2</code> and each encoder state:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>score(s₂, h₁) = 0.1
+</span></span><span style="display:flex;"><span>score(s₂, h₂) = 0.8
+</span></span><span style="display:flex;"><span>score(s₂, h₃) = 0.1
+</span></span></code></pre></div><p>We don&rsquo;t even need to calculate softmax here, we know that we&rsquo;re going to pick <code>score(s₂, h₂) = 0.8</code>. Once again, while generating &ldquo;suis&rdquo; we guide our model to foucs on &ldquo;am&rdquo;.</p>
+<p>I think you start to get the idea.</p>
+<h4 id="step-3-generate-faim">Step 3: Generate &ldquo;faim&rdquo;<a hidden class="anchor" aria-hidden="true" href="#step-3-generate-faim">#</a></h4>
+<p>Decoder hidden state is <code>s_3</code>
+We can compute alignment scores between <code>s_3</code> and each encoder state:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>score(s₃, h₁) = 0.05
+</span></span><span style="display:flex;"><span>score(s₃, h₂) = 0.1
+</span></span><span style="display:flex;"><span>score(s₃, h₃) = 0.85
+</span></span></code></pre></div><p>Guides the model towards &ldquo;hungry&rdquo; when predicting faim. We just gave this RNN/LSTM setup superpowers.</p>
+<p>Attention maps help me understand correlation between words well</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>                Input →   I     am    hungry
+</span></span><span style="display:flex;"><span>              -----------------------------
+</span></span><span style="display:flex;"><span>    Output ↓   Je       [0.64, 0.26, 0.10]
+</span></span><span style="display:flex;"><span>               suis     [0.10, 0.80, 0.10]
+</span></span><span style="display:flex;"><span>               faim     [0.05, 0.10, 0.85]
+</span></span></code></pre></div><p>Let&rsquo;s look at how our Seq2Seq model now looks like integrated with attention.</p>
+<p>The encoder does not change because it still has to do the same job as before: process the input sequence and spit out all the hidden states — one per token.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EncoderRNN</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, vocab_size, embed_dim, hidden_dim):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>embedding <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Embedding(vocab_size, embed_dim)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>rnn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>RNN(embed_dim, hidden_dim, batch_first<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">forward</span>(self, input_seq):
+</span></span><span style="display:flex;"><span>        embedded <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>embedding(input_seq) <span style="color:#75715e"># batch, seq_len, embed_dim</span>
+</span></span><span style="display:flex;"><span>        outputs, hidden <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>rnn(embedded) <span style="color:#75715e"># outputs: batch, seq_len, hidden_dim</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> outputs, hidden  <span style="color:#75715e"># return all outputs, not just the final hidden</span>
+</span></span></code></pre></div><p>Note the line change at the end of the forward function, we are now returning all outputs, not just the final hidden state.</p>
+<p>We need to add an attention class to calculate our scores</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AdditiveAttention</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, hidden_dim):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>attn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Linear(hidden_dim <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>, hidden_dim)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>v <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Linear(hidden_dim, <span style="color:#ae81ff">1</span>, bias<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">forward</span>(self, decoder_hidden, encoder_outputs):
+</span></span><span style="display:flex;"><span>        batch_size, seq_len, _ <span style="color:#f92672">=</span> encoder_outputs<span style="color:#f92672">.</span>size()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        decoder_hidden <span style="color:#f92672">=</span> decoder_hidden<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>repeat(<span style="color:#ae81ff">1</span>, seq_len, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        concat <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat((decoder_hidden, encoder_outputs), dim<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>        energy <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>tanh(self<span style="color:#f92672">.</span>attn(concat)) <span style="color:#75715e"># batch, seq_len, hidden_dim</span>
+</span></span><span style="display:flex;"><span>        scores <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>v(energy)<span style="color:#f92672">.</span>squeeze(<span style="color:#ae81ff">2</span>) <span style="color:#75715e"># batch, seq_len</span>
+</span></span><span style="display:flex;"><span>        attn_weights <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>softmax(scores, dim<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># batch, seq_len</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># weighted sum -&gt; context vector</span>
+</span></span><span style="display:flex;"><span>        context <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>bmm(attn_weights<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>), encoder_outputs) <span style="color:#75715e"># batch, 1, hidden_dim</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> context<span style="color:#f92672">.</span>squeeze(<span style="color:#ae81ff">1</span>), attn_weights <span style="color:#75715e"># context: batch, hidden_dim</span>
+</span></span></code></pre></div><p>We now need to change our decoder for attention</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AttnDecoderRNN</span>(nn<span style="color:#f92672">.</span>Module):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, vocab_size, embed_dim, hidden_dim):
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span><span style="color:#a6e22e">__init__</span>()
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>embedding <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Embedding(vocab_size, embed_dim)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>rnn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>RNN(embed_dim <span style="color:#f92672">+</span> hidden_dim, hidden_dim, batch_first<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>fc_out <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>Linear(hidden_dim <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>, vocab_size)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>attention <span style="color:#f92672">=</span> AdditiveAttention(hidden_dim)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">forward</span>(self, input_step, hidden, encoder_outputs):
+</span></span><span style="display:flex;"><span>        embedded <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>embedding(input_step) <span style="color:#75715e"># batch, 1, embed_dim</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        context, attn_weights <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>attention(hidden<span style="color:#f92672">.</span>squeeze(<span style="color:#ae81ff">0</span>), encoder_outputs)
+</span></span><span style="display:flex;"><span>        context <span style="color:#f92672">=</span> context<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>) <span style="color:#75715e"># batch, 1, hidden_dim</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        rnn_input <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat((embedded, context), dim<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>) <span style="color:#75715e"># batch, 1, embed + hidden</span>
+</span></span><span style="display:flex;"><span>        output, hidden <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>rnn(rnn_input, hidden) <span style="color:#75715e"># output: batch, 1, hidden_dim</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        combined <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>cat((output<span style="color:#f92672">.</span>squeeze(<span style="color:#ae81ff">1</span>), context<span style="color:#f92672">.</span>squeeze(<span style="color:#ae81ff">1</span>)), dim<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># batch, hidden*2</span>
+</span></span><span style="display:flex;"><span>        logits <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>fc_out(combined) <span style="color:#75715e"># batch, vocab_size</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> logits, hidden, attn_weights
+</span></span></code></pre></div><p>And here&rsquo;s a simple training loop</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>encoder <span style="color:#f92672">=</span> EncoderRNN(vocab_size, embed_dim, hidden_dim)
+</span></span><span style="display:flex;"><span>decoder <span style="color:#f92672">=</span> AttnDecoderRNN(vocab_size, embed_dim, hidden_dim)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>loss_fn <span style="color:#f92672">=</span> nn<span style="color:#f92672">.</span>CrossEntropyLoss()
+</span></span><span style="display:flex;"><span>optimizer <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>optim<span style="color:#f92672">.</span>Adam(list(encoder<span style="color:#f92672">.</span>parameters()) <span style="color:#f92672">+</span> list(decoder<span style="color:#f92672">.</span>parameters()))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> epoch <span style="color:#f92672">in</span> range(num_epochs):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> input_seq, target_seq <span style="color:#f92672">in</span> dataloader:
+</span></span><span style="display:flex;"><span>        encoder_outputs, encoder_hidden <span style="color:#f92672">=</span> encoder(input_seq)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        decoder_input <span style="color:#f92672">=</span> target_seq[:, <span style="color:#ae81ff">0</span>]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>)  <span style="color:#75715e"># &lt;Start Of Sequence&gt;</span>
+</span></span><span style="display:flex;"><span>        decoder_hidden <span style="color:#f92672">=</span> encoder_hidden
+</span></span><span style="display:flex;"><span>        loss <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> t <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, target_seq<span style="color:#f92672">.</span>size(<span style="color:#ae81ff">1</span>)):
+</span></span><span style="display:flex;"><span>            logits, decoder_hidden, _ <span style="color:#f92672">=</span> decoder(decoder_input, decoder_hidden, encoder_outputs)
+</span></span><span style="display:flex;"><span>            loss <span style="color:#f92672">+=</span> loss_fn(logits, target_seq[:, t])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            decoder_input <span style="color:#f92672">=</span> target_seq[:, t]<span style="color:#f92672">.</span>unsqueeze(<span style="color:#ae81ff">1</span>)  <span style="color:#75715e"># teacher forcing</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        loss<span style="color:#f92672">.</span>backward()
+</span></span><span style="display:flex;"><span>        optimizer<span style="color:#f92672">.</span>step()
+</span></span><span style="display:flex;"><span>        optimizer<span style="color:#f92672">.</span>zero_grad()
+</span></span></code></pre></div><p>Instead of forcing the decoder to remember everything from a single context vector, we now let it <strong>look back at the full input</strong> and dynamically focus on what matters most at each step. This makes our model way more robust, especially for longer or more complex sentences.</p>
+<blockquote>
+<p>Attention isn’t translating or generating words here — it’s just guiding the decoder towards the right information. The actual “translation” happens because the whole system is trained end-to-end to minimize prediction error.</p></blockquote>
+<hr>
+<h2 id="unleashing-the-power-of-attention-2014-2017">Unleashing the power of Attention (2014-2017)<a hidden class="anchor" aria-hidden="true" href="#unleashing-the-power-of-attention-2014-2017">#</a></h2>
+<p>After the concept of attention was introduced, the floodgates opened. Researchers quickly realized that attention wasn&rsquo;t a patch but rather a paradigm shift. Between 2014-2017 people started injecting it everywhere.</p>
+<p>During this era:</p>
+<ul>
+<li>Machine translation scores skyrocketed. Attention-augmented seq2seq models crushed RNN/LSTM setups on BLEU scores, especially for longer sentences. Google Translate fully shifted attention based neural models by 2016.</li>
+<li>We could see <em>where</em> a model was focusing. Attention heatmaps (a more complicated version of what we saw above) made neural networks more interpretable than before.</li>
+<li>Multiple attention variants came to be. We saw different methods that tuned different parts of the model like heads, layers, and positions.</li>
+<li>People started using attention in image captioning, speech recognition, and even music generation. It really did become a general purpose way to point at the important parts of the sequence.</li>
+<li>Researchers started to stack attention layers. Instead of applying attention once per decoding step, stacking attention gave them the ability to feed them deeper into the model architecture.</li>
+</ul>
+<p>Every year from then out, attention was proving to be more indispensable and RNNs/LSTMs were getting tough to deal with. Some folks at google asked a revolutionary question.</p>
+<blockquote>
+<p>What if we got rid of recurrence entirely?</p></blockquote>
+<p>No RNNs. No LSTMs. No GRUs. No sequential processing whatsoever.</p>
+<p>Just attention at every layer, all the way down.</p>
+<p>And with that, <em><a href="https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf">Attention Is All You Need</a></em> came to be.</p>
+<p>It&rsquo;s kind of beautiful the way we got here, wiht humble beginnings in regex. It really shows that even the hardest of questions can be solved by breaking it down and iterating.</p>
+<hr>
+<h2 id="conclusion">Conclusion<a hidden class="anchor" aria-hidden="true" href="#conclusion">#</a></h2>
+<p>If we look carefully, each part gave us a foundation to build off on. At each step, we were able to recognize the benefits, the bottlenecks, and the issues with each architecture. We were then able to look into ways to fix that and slowly we were able to actually do it - a model that understands everything about your input text and can coherently generate output text. And this was possible only with each tiny step that many AI researchers have taken across time.</p>
+<p>I wrote a follow up blog about removing reccurance and how transformers came to be <a href="https://akhilvreddy.com/posts/attention-from-scratch/">here</a>.</p>
+
+
+  </div>
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://akhilvreddy.github.io/tags/word2vec/">Word2vec</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/embeddings/">Embeddings</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/nlp/">Nlp</a></li>
     </ul>
   </footer>
 </article>

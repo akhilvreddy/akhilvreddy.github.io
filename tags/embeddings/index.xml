@@ -2,38 +2,38 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Embeddings on Akhil’s Blog</title>
-    <link>https://akhilvreddy.github.io/tags/embeddings/</link>
+    <link>http://localhost:1313/tags/embeddings/</link>
     <description>Recent content in Embeddings on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 20 May 2025 18:12:56 -0400</lastBuildDate>
-    <atom:link href="https://akhilvreddy.github.io/tags/embeddings/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/tags/embeddings/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Designing AlphaTicTacToe (and AlphaTicTacToeZero)</title>
-      <link>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</link>
+      <link>http://localhost:1313/posts/alpha-tic-tac-toe/</link>
       <pubDate>Tue, 20 May 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</guid>
+      <guid>http://localhost:1313/posts/alpha-tic-tac-toe/</guid>
       <description>AlphaGo blew my mind and AlphaGoZero was the cherry on top. Recreating this in a simple environment was a long term dream of mine.</description>
     </item>
     <item>
       <title>Building Transformers from scratch: Multi-Head Attention, LayerNorm, and the brain behind ChatGPT</title>
-      <link>https://akhilvreddy.github.io/posts/attention-from-scratch/</link>
+      <link>http://localhost:1313/posts/attention-from-scratch/</link>
       <pubDate>Mon, 03 Mar 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/attention-from-scratch/</guid>
+      <guid>http://localhost:1313/posts/attention-from-scratch/</guid>
       <description>I felt like I would never understand how LLMs really generate text until I actually create a transformer from scratch and actually code up multi-head self attention with non-modular, functional-style PyTorch.</description>
     </item>
     <item>
       <title>How did we get to Transformers? The rise of Attention</title>
-      <link>https://akhilvreddy.github.io/posts/attention-beginnings/</link>
+      <link>http://localhost:1313/posts/attention-beginnings/</link>
       <pubDate>Fri, 28 Feb 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/attention-beginnings/</guid>
+      <guid>http://localhost:1313/posts/attention-beginnings/</guid>
       <description>Attention is really useful but just like any great invention, it was built out of necessity for the problems at hand. In this post, I aim to dive into the issues researchers were dealing with between 2013-2017.</description>
     </item>
     <item>
       <title>Word2Vec from scratch: Intuition to Implementation</title>
-      <link>https://akhilvreddy.github.io/posts/word2vec-scratch/</link>
+      <link>http://localhost:1313/posts/word2vec-scratch/</link>
       <pubDate>Fri, 10 Jan 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/word2vec-scratch/</guid>
+      <guid>http://localhost:1313/posts/word2vec-scratch/</guid>
       <description>Q(king) - Q(man) + Q(woman) ≈ Q(queen) is beautiful but the approach we take to get there is even cooler. I wanted to dive into how these emergent properties come to be and the bottlenecks we face.</description>
     </item>
   </channel>

@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><meta charset="utf-8">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
+<meta name="robots" content="noindex, nofollow">
 <title>Designing &amp; Building a Rate Limiter | Akhil’s Blog</title>
 <meta name="keywords" content="">
 <meta name="description" content="After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp; play framework">
 <meta name="author" content="Building software">
-<link rel="canonical" href="https://akhilvreddy.github.io/posts/rlaas/">
+<link rel="canonical" href="http://localhost:1313/posts/rlaas/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://akhilvreddy.github.io/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="https://akhilvreddy.github.io/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://akhilvreddy.github.io/favicon-32x32.png">
-<link rel="apple-touch-icon" href="https://akhilvreddy.github.io/apple-touch-icon.png">
-<link rel="mask-icon" href="https://akhilvreddy.github.io/safari-pinned-tab.svg">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="https://akhilvreddy.github.io/posts/rlaas/">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/rlaas/">
 <noscript>
     <style>
         #theme-toggle,
@@ -55,73 +55,7 @@
         }
 
     </style>
-</noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/rlaas/">
-  <meta property="og:site_name" content="Akhil’s Blog">
-  <meta property="og:title" content="Designing & Building a Rate Limiter">
-  <meta property="og:description" content="After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp; play framework">
-  <meta property="og:locale" content="en-us">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-04-30T18:12:56-04:00">
-    <meta property="article:modified_time" content="2025-04-30T18:12:56-04:00">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Designing &amp; Building a Rate Limiter">
-<meta name="twitter:description" content="After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug &amp; play framework">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "Posts",
-      "item": "https://akhilvreddy.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "Designing \u0026 Building a Rate Limiter",
-      "item": "https://akhilvreddy.github.io/posts/rlaas/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Designing \u0026 Building a Rate Limiter",
-  "name": "Designing \u0026 Building a Rate Limiter",
-  "description": "After spamming my own API by accident, I had two goals: 1) understand how the internals of a rate limiter work (it seemed deceptively simple) and 2) create a reusable, plug \u0026amp; play framework",
-  "keywords": [
-    
-  ],
-  "articleBody": "One weekend, I accidentally queued over 300 jobs on my dev server — which, unfortunately, had my credit card linked to Google Colab. That was not fun. It left me staring at usage alerts I did not want to see.\nThat was a wake-up call telling me that I needed guardrails. Not just to avoid racking up bills, but to actually understand how to build those guardrails myself.\nSo I decided to design and build my own rate limiter, tailored to my workflows. In this post, I’ll break down the design decisions, tradeoffs, and then walk through the actual build. The attached github repository is here\nDesigning my Rate Limiter Why Rate Limiters Matter \u0026 Why I Wanted to Build One A rate limiter is one of those systems you don’t think about — until you spam your own backend and everything goes sideways.\nRate limiting is how apps like Twitter or Instagram keep bots from flooding feeds, how APIs protect themselves from abuse, and how systems stay resilient under pressure. Whether it’s external users, internal scripts, or even your own code gone rogue, a rate limiter puts guardrails around how much and how often something can make requests.\nIn my case, I wasn’t trying to rebuild Cloudflare or engineer a globally distributed throttler. At first glance, a rate limiter seemed deceptively simple — just track how many requests someone makes and cut them off if they go too far. But once I started reading more, I realized it touches on systems-level problems that are easy to underestimate.\nThat’s when I decided to build my own. Not a production-grade service — just something clean and reusable that I could drop into personal projects to stop them from burning through compute or money.\nI wanted to understand:\nHow to track and enforce limits accurately What happens when multiple requests land at the same time What it means for a rate limiter to be fair and efficient This project became a deep dive into concurrency, timing edge cases, and real-world tradeoffs — all wrapped inside what initially looked like a tiny utility.\nWhat Real-World Rate Limiters Look Like at Scale •\tBriefly describe how big players do it: •\tMulti-region distributed systems •\tRedis + Lua scripting •\tToken buckets across clusters •\tSharded counters and per-IP memory caps •\tGoal: Set the bar you’re not trying to hit — this builds trust. Show you’re aware of the “real” thing. What I want my Rate Limiter to be — and the tradeoffs •\tDesign goals: Simple, clean, testable, modular. Good for a personal project, internal tooling, or early-stage startup. •\tChoices you’ll make: •\tIn-memory vs Redis-backed •\tToken Bucket vs Sliding Window vs Fixed Window •\tGlobal limit vs per-user vs per-endpoint •\tTradeoffs: •\t“Won’t persist across restarts” •\t“Not distributed (yet)” •\t“No hard failover, but it’s testable and fast” With that, I’ll get started with building my rate limiter.\nBuilding my Rate Limiter Future steps (if I had time) Where I’d Take It Next •\tReal systems need: •\tRace-condition protection •\tMulti-node shared state (Redis, Memcached, etc) •\tQueueing vs rejecting requests •\tRate limiting by IP / Auth token •\tPer-endpoint limits •\tAdaptive rate limiting (dynamic thresholds)\n",
-  "wordCount" : "542",
-  "inLanguage": "en",
-  "datePublished": "2025-04-30T18:12:56-04:00",
-  "dateModified": "2025-04-30T18:12:56-04:00",
-  "author":{
-    "@type": "Person",
-    "name": "Building software"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://akhilvreddy.github.io/posts/rlaas/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Akhil’s Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://akhilvreddy.github.io/favicon.ico"
-    }
-  }
-}
-</script>
+</noscript>
 </head>
 
 <body class="" id="top">
@@ -139,7 +73,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="https://akhilvreddy.github.io/" accesskey="h" title="Akhil’s Blog (Alt + H)">Akhil’s Blog</a>
+            <a href="http://localhost:1313/" accesskey="h" title="Akhil’s Blog (Alt + H)">Akhil’s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -165,17 +99,17 @@
         </div>
         <ul id="menu">
             <li>
-                <a href="https://akhilvreddy.github.io/" title="Home">
+                <a href="http://localhost:1313/" title="Home">
                     <span>Home</span>
                 </a>
             </li>
             <li>
-                <a href="https://akhilvreddy.github.io/posts/" title="Posts">
+                <a href="http://localhost:1313/posts/" title="Posts">
                     <span>Posts</span>
                 </a>
             </li>
             <li>
-                <a href="https://akhilvreddy.github.io/tooling/" title="Tooling">
+                <a href="http://localhost:1313/tooling/" title="Tooling">
                     <span>Tooling</span>
                 </a>
             </li>
@@ -288,7 +222,7 @@
     </main>
     
 <footer class="footer">
-        <span>&copy; 2025 <a href="https://akhilvreddy.github.io/"> </a></span>
+        <span>&copy; 2025 <a href="http://localhost:1313/"> </a></span>
 
 </footer>
 <a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
