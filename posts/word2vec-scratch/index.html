@@ -99,8 +99,8 @@
   "keywords": [
     
   ],
-  "articleBody": "Have you ever thought about how we teach machines which words are similar — and which ones aren’t? It’s wild to realize that our phones had smart autocomplete features decades before modern AI tools like ChatGPT became mainstream.\nIn an n-dimensional space, words “cling” to their own axes—Word2Vec learns this by pushing true neighbors together and pulling random words apart (contrastive learning).\nWord embeddings laid the foundation for modern NLP models. Before transformer-style architectures took over (with their dynamic embeddings), Word2Vec was the go-to method for capturing the semantic meaning of words through dense (~ 100-300 dim) vectors.\nIn this post, I’m walking through the intuitions, architecture, methods, and math behind Word2Vec — and eventually implementing it from scratch using PyTorch.\n💡 Why Word2Vec? The core idea behind Word2Vec is that words that appear in similar contexts should have similar representations and should appear closer together in higher dimensional vector spaces. This principle — often summed up as “You shall know a word by the company it keeps” — forms the foundation of modern embedding models. Instead of manually designing features, Word2Vec lets the model learn them by predicting words based on context.\nThere are two main ways to solve this problem:\nSkip-gram — Predict surrounding context words given the current word. CBOW (Continuous Bag of Words) — Predict the current word given its surrounding context. In both cases, the model learns to assign each word a dense vector in a high-dimensional space — an embedding — such that semantically similar words are close together.\nAt the heart of the model is one hashmap and two embedding matrices:\nLookupTable - Maps words from your vocabulary to a number between 0 and len(vocab)-1 -\u003e each one of those numbers represents a row in the embedding matrices\nE_in — Used to represent the input word\nE_out — Used to compute predictions over context words\nHere’s an easy way to visualize a matrix like E_in or E_out.\nBoth are of shape (vocab_size, embedding_dim). During training, we take the dot product of the input word’s vector from E_in with all rows of E_out, yielding similarity scores. A softmax is typically applied to convert these into probabilities, and the model learns by maximizing the probability of true context words. After training, we often discard E_out and treat E_in as our final word embedding matrix.\nTLDR of this section: We are learning two embedding matrices, E_in and E_out which will contain dense vectors that have information about the semantics of our corpus. We also have a couple different ways to learn these matrices (skip gram, CBOW) which approach the problem in different ways.\n🔍 Methods to approach word embeddings The simplest way in training Word2Vec is just having two matrices E_in and E_out and initialize them with Xavier initialization. We use two separate matrices because the role of a word as a center word (input) is distinct from its role as a context word (output). Keeping them separate allows the model to learn directional context — e.g., “dog” and “bark” might be close in one direction but not the other.\nFormally, E_in, E_out ∈ ℝ^{|V| × d}, where |V| is the vocabulary size and d is the embedding dimension. Xavier initialization sets each weight to values drawn from a distribution whose variance keeps activations well-scaled, preventing gradients from exploding or vanishing—even in this mostly linear architecture.\nFor a quick recap / introduction to Xavier style initialization, I recommend reading this other small post.\nVanilla Training Method (Warning: this will fry your GPU 😭)\nThe the most straightfowrard way to train Word2Vec is to use the full softmax across the whole vocabulary. Here’s how is works:\nFor each center word, grab it’s embedding vector from E_in. Recall that each row in E_in is its own embedding. Compute dot products between this vector and every row in E_out, giving you a tensor of shape (vocab_size,). Apply a softmax over all vocabulary words to get probabilities of what are close. You have the option to sample top k here or just pick the argmax. The model learns by maximizing probability of the true context word -\u003e shows us that we must use cross-entropy loss. Backpropagate and update weights in both embedding matrices (E_in and E_out) Pretty straightforward right? Here’s the catch:\nEvery forward pass, we are doing a softmax on your entire vocabulary - and your vocabulary might be around 50000+ words in real world datasets. You are essentially doing thousands of unnecessary calculations per word pair, burning your compute and making training brutally slow, though the core weight updates are only from a small handful of words that you have.\nBottom line: This method is great for understanding the core math/backprop and what exactly is going on in Word2Vec but falls short in reality (unless you have time and money to burn).\nSkip Gram with Negative Sampling (Industry standard 🔥)\nEssentially we are going to do what we did in the previous example but now we are going to address the bottleneck - the O(V) computation cost per forward pass. But other than that we are going to follow the same general structure.\nIn essance, what SGwNS says is that: “Computing for all 50000+ words in your vocabulary is too expensive. Let’s just compare the center word to 1 good word (ground truth word) and take a random sample of “bad” words to push them away.”\nSo you go from softmaxxing 50k values -\u003e 1 positive dot product (your center word \u003c-\u003e the word you want (ground truth)) \u0026 5-20 negative dot products (your center word \u003c-\u003e unrelated words)\nWe can set k = 1 (positive dot product word) + 5-20 (negative dot product words). So now we pay O(k) instead of O(V) - huge gains. (k \u003c \u003c V)\nAnd this is exactly how we beat the bottleneck: contrastive learning.\nBottom line: We are using a smart trick to push away random words that are not meaningful to our current word, hopefully resulting in results similar to the vanilla method. (Spoiler: this trick does work really well and that’s why it is the industry standard)\nContinuous Bag of Words (also cool but slightly lower performance than SGwNS 🙉)\nThis essentially works in the opposite direction as Skip Gram:\nInstead of predicting cnontext from the center word, you predict the center word from it’s surrounding context words (kind of like what modern day LLMs do, but on 2015 technology) You take all the context word embeddings, average (or sum) them, and feed the result into the model. The model then tries to guess the center word using either of the methods we talked above: full softmax (like the vanilla version) negative sampling (like SGwNS) Bottom line: Since we are comibing multiple context words into one average (or sum), CBOW trains faster than Skip-Gram and is more stable for smaller datasets. However, the main tradeoff is the fine-grained semantic realtionships because of that averaging. Most of the times, this method performs slightly worse than SGwNS and hence insn’t that big in practice.\nNext, let’s talk about loss functions for each method.\n🧠 Training Objective / Criterion Let’s split up the training objective by section (0, 1, or 2) and then we can ask two more sub-questions within each section:\nWhat should our loss function look like to actually pull together words that are similar (or push away words that are not similar)? What is going to get backpropagated once we actually have a scalar loss value? –\nVanilla Method Here, we want the model to assign high probability to the correct context word. We don’t care about other words right now - we just want:\nLow loss when the predicted context word is the actual neighbor High loss when the predicition is far off (e.g., coffee showing up near bird) Since this is a multi-class classification task (predict 1 word out of vocab_size), the natural loss to use is cross-entropy, applied on top of a softmax.\n🧮 The Goal:\nMaximize the probability of the true context word $w_o$, given the center word $w_c$: $$ P(w_o \\mid w_c) = \\frac{e^{u_o^\\top v_c}}{\\sum_{w=1}^{V} e^{u_w^\\top v_c}} $$\nMath symbols scare me too so I’ll break down what that it saying. The numerator is how similar the correct word is to the center word. The denominator is how similar every word in the vocab is to the center word. So if the correct context word is super close in high dimensional space, we have a larger numerator (good!). If a bunch of random words are also closeby our denominator increases (bad!).\nWe want to maximize this probability so that means making the true word similarity as big as possible while keeping all other dot products in the denominator small. Since this is a probability, cross-entropy loss is the star.\nIt’s defined as:\n$$ L = -\\log\\ \\Bigl( \\frac{\\exp(u_o^T v_c)} {\\sum_{w=1}^{V} \\exp(u_w^T v_c)} \\Bigr) $$\nThis basically measures “how surprised are we by the correct answer?”, exactly what we should be asking when we predict a good/bad word. We now have a scalar loss that we can backpropagate through our network (loss.backward())\nDuring backpropagation, only the embeddings of the center word and the true context word actually get updated. All other words are just there to normalize the softmax, they aren’t contributing anything else. This is why is method is so inefficient - we are doing a HUGE amount of computation just to update 2 weights (crunching 50k numbers to update 2 weights).\nLet’s fix this O(V) nightmare in the next section with negative sampling. However, we would need to change our training objective now.\n–\nSkip Gram with Negative Sampling Let’s address this bottleneck now. Instead of predicting one word out of 50k, we can turn it into a binary classification task.\nIs this a true context word -\u003e label = 1\nIs this a random irrelevant word -\u003e label = 0\nFor every center word, we train on:\nOne positive pair (center, actual context word) k negative pairs (center, randomly sampled “noise” words) And we are going to use the sigmoid function here instead of softmax so that each pair is treated independently. (This used to confuse me a lot too at first, but I just don’t have the space to write about it more in this post ☹️).\nProbability Objective:\nWe want to maximize the probability that a real word pair appears together:\n$$ P(\\text{real} \\mid w_c, w_o) = \\sigma(u_o^\\top v_c) $$\nAnd for a negative (fake) sample, we want:\n$$ P(\\text{fake} \\mid w_c, w_i) = \\sigma(-u_i^\\top v_c) $$\nLoss Function:\n$$ L = -\\log(\\sigma(u_o^\\top v_c)) - \\sum_{i=1}^{k} \\log(\\sigma(-u_i^\\top v_c)) $$\nThis is a really cool loss function because it has two jobs. One for pulling the true word closer together and one for pushing the fake words away. We can see that the first term is calculating the negative log of the similarity between the center word and the context word. This gives us a loss that is lower when they are highly similar - exactly what we wanted.\nThe second term is where we pull in embeddings for k negative sampled words that are not in the context. We want their similarity with the center word to be low - that’s why we negate the dot product, apply sigmoid (which favors small similarity), and penalize high values. In a nutshell this pushes away random/fake context words, minimizing the chance that the model falsely thinks they belong together.\nThese two terms combined teach the model “pull what matters, push what doesn’t”.\n$\\sigma(x) = \\frac{1}{1 + e^{-x}}$ is the sigmoid function $u_o$ is the embedding of the true context word (positive) $u_i$ are the embeddings of $k$ negative words –\nContinous Bag of Words (CBOW) You probably get the gist of what we do now: understand our probability objective and based on that, make a loss objective.\nHere, we have to be ready to flip our heads in the opposite way. We are going to predict the center word now, given a set of context words.\nThe probability objective:\n$$ P(w_c \\mid w_{c - m}, \\dots, w_{c + m}) = \\frac{e^{u_c^\\top \\bar{v}}}{\\sum_{w=1}^{V} e^{u_w^\\top \\bar{v}}} $$\nOur loss function (with negative sampling) is:\n$$ L = -\\log(\\sigma(u_c^\\top \\bar{v})) - \\sum_{i=1}^{k} \\log(\\sigma(-u_i^\\top \\bar{v})) $$\n$\\sigma(x) = \\frac{1}{1 + e^{-x}}$ — the sigmoid function, which squashes scores into a range between 0 and 1. We use it to convert similarity scores into probabilities. $u_c$ — the output embedding of the center word (the word we’re trying to predict). Think of this like a “target” vector. $\\bar{v}$ — the average of the input (context) embeddings surrounding the center word. This is what we feed in to predict the center. $u_i$ — the output embeddings of $k$ negative samples (randomly chosen words that are not the true center). We want the model to push these words away from the context representation. 🛠️ Coding it out I’ll be putting in snippets here but to view the entire repository, please go over to github.\ncoming tmr\n🦾 Tradeoffs Recap I’ll be putting in snippets here but to view the entire repository, please go over to github.\ncoming tmr\n⚙️ TL;DR / Summary Word2Vec may be old school now, but it’s still one of the most elegant and interpretable ideas in the NLP world. It’s also a great way to build up your ML intuition, understand the baby steps towards contrastive learning, and get comfortable with training loops.\nIf you enjoyed reading this feel free to star this repo on github 🙂\n",
-  "wordCount" : "2252",
+  "articleBody": " TL;DR: Word2Vec kickstarted the era of learned word representations by turning words into dense vectors based on their context, capturing meaning through proximity in vector space. This blog post breaks down its core ideas, architectures (Skip-gram \u0026 CBOW), and loss functions (cross-entropy vs. negative sampling).\nThe repsitory with the corresponding PyTorch implementation is available here.\nHave you ever thought about how we teach machines which words are similar — and which ones aren’t? It’s wild to realize that our phones had smart autocomplete features decades before modern AI tools like ChatGPT became mainstream.\nIn a n-dimensional space, words “cling” to their own axes—Word2Vec learns this by pushing true neighbors together and pulling random words apart (this is a form contrastive learning, teaching the model to tell 'correct' context words apart from random ones).\nWord embeddings laid the foundation for modern NLP models. Before transformer-style architectures took over (with their dynamic embeddings), Word2Vec was the go-to method for capturing the semantic meaning of words through dense (~ 100-300 dim) vectors.\nIn this post, I’m walking through the intuitions, architecture, methods, and math behind Word2Vec — and eventually implementing it from scratch using PyTorch.\nWhat is Word2Vec? As the name suggests, Word2Vec is a method to take a word and put it into a high dimension vector space. For example, we could see\ndog = [0.03 -0.84 0.91 ... ] # 300 values and that’s where the word “dog” would live in that space. The core idea behind creating Word2Vec is that words that appear in similar contexts should have similar representations and should appear closer together in higher dimensional vector spaces. This principle is often summed up as “you shall know a word by the company it keeps” and forms the foundation of modern embedding models. Instead of manually designing features, Word2Vec lets the model learn them by predicting words based on context.\nThere are two main ways to solve this problem:\nSkip-gram — Predict surrounding context words given the current word. Continuous Bag of Words (CBOW) — Predict the current word given its surrounding context. In both cases, the model learns to assign each word a dense vector in a high-dimensional space — an embedding — such that semantically similar words are close together.\nAt the heart of the model is one hashmap and two embedding matrices:\nLookup Table - Maps words from your vocabulary to a number between 0 and len(vocab)-1 ➝ each one of those numbers represents a row in the embedding matrices\nE_in — Used to represent the input word\nE_out — Used to compute predictions over context words\nI used to get confused on why we needed two matrices because I always wondered why we couldn’t use just a single matrix.\nThe answer is that we need one embedding to represent the word itself and a second one to represent how it behaves as a context word. These turn out to learn slightly different properties.\nHere’s an easy way to visualize a matrix like E_in or E_out.\nBoth of these are matrices with the same dimensions but very different values (embeddings used to represent the input word vs. embeddings used to predict context).\nBoth are of shape (vocab_size, embedding_dim). During training, we take the dot product of the input word’s vector from E_in with all rows of E_out, yielding similarity scores. A softmax is typically applied to convert these into probabilities, and the model learns by maximizing the probability of true context words. After training, we often discard E_out and treat E_in as our final word embedding matrix.\nHere, we are learning two embedding matrices, E_in and E_out which will contain dense vectors that have information about the semantics of our corpus. We also have a couple different ways to learn these matrices (skip gram, CBOW) which approach the problem in different ways.\nMethods to approach word embeddings The simplest way in training Word2Vec is first creating two matrices E_in and E_out and initializing them with Xavier. Formally, E_in, E_out ∈ ℝ^{|V| × d}, where |V| is the vocabulary size and d is the embedding dimension. Xavier initialization sets each weight to values drawn from a distribution whose variance keeps activations well-scaled, preventing gradients from exploding or vanishing—even in this mostly linear architecture.\nFor a quick recap / introduction to Xavier style initialization, I recommend reading this other small post.\nVanilla Training Method The the most straightforward way to train Word2Vec is to use the full softmax across the whole vocabulary. Here’s how is works:\nGiven a word, find it’s row index using your lookup table. Take the row index, grab its corresponding embedding vector from E_in (recall that each row in E_in is its own embedding). Compute dot products between this vector and every row in E_out, giving you a tensor of shape (vocab_size,). Apply a softmax over all vocabulary words to get probabilities of what are close. You have the option to sample top k here or just pick the argmax (in implementation I only used argmax). The model learns by maximizing probability of the true context word ➝ we must use cross-entropy loss. Backpropagate and update weights in both embedding matrices (E_in and E_out) Pretty straightforward right? Here’s the catch:\nEvery forward pass, we are doing a softmax on your entire vocabulary, and your vocabulary might be around 50000+ words in real world datasets. Since only a small handful of words are related to any given word, most values (I’d say close to 98%) are going to be ~0 after the softmax. You are essentially doing thousands of unnecessary calculations per word pair, burning your compute and making training brutally slow, though the core weight updates are only from a small handful of words that you have.\nThis is what's happening behind the scenes for a forward pass for the word \"dog\": dog_embed @ E_out ➝ softmax ➝ argmax\nBottom line: This method is great for understanding the core math/backprop and what exactly is going on in Word2Vec but falls short in reality (unless you have time and money to burn).\nSkip Gram with Negative Sampling This is the industry standard method for training Word2Vec.\nWe’re keeping the same goal (learn embeddings by predicting nearby words) but we are addressing the main bottleneck: the O(V) cost of computing softmax over the entire vocabulary on every forward pass.\nWhat SGwNS says is\n“Computing softmax over all 50000+ words in your vocabulary is too expensive. Let’s just compare the center word to 1 good (related) word (ground truth word) and take a random sample of bad (unrelated) words to push them away”\nSo we aim to maximize (and minimize) different things here:\nMaximize σ(dot(E_in[center], E_out[context])) → we want this close to 1 Minimize σ(-dot(E_in[center], E_out[negative])) → we want these close to 0 Where σ is the sigmoid function, not softmax. We replace the softmax with sigmoid-based binary classification, scoring each (center, context) pair individually:\nOne positive pair is scored and pushed closer k negative pairs are scored and pushed apart This turns the multi-class classification problem into k+1 binary classifications, and the total loss is a sum of sigmoid-based log-likelihoods — way cheaper to compute and easier to train.\nAnd this is exactly how we beat the bottleneck: contrastive learning.\nThis is what's happening behind the scenes for a forward pass for the word \"dog\": dog_embed @ bark_embed_out ➝ sigmoid ➝ loss\nBottom line: We are using a smart trick to push away random words that are not meaningful to our current word, hopefully resulting in results similar to the vanilla method. (Spoiler: this trick does work really well and that’s why it is the industry standard)\nContinuous Bag of Words This essentially works in the opposite direction as Skip-Gram.\nInstead of predicting context from the center word, you predict the center word from it’s surrounding context words You take all the context word embeddings, average (or sum) them, and feed the result into the model. The model then tries to guess the center word using either of the methods we talked above: full softmax (like the vanilla version, we can expect a huge computation cost as before) negative sampling (like SGwNS) This is what's happening behind the scenes for a forward pass for the word \"doctor\": avg_embed_out @ doctor_embed ➝ sigmoid ➝ loss\nBottom line: Since we are comibing multiple context words into one average (or sum), CBOW trains faster than Skip-Gram and is more stable for smaller datasets. However, the main tradeoff is the fine-grained semantic realtionships because of that averaging. Most of the times, this method performs slightly worse than SGwNS and hence insn’t that big in practice.\nNext, let’s talk about loss functions for each method.\nTraining Objective Let’s split up the training objective by section and then we can ask two more sub-questions within each section:\nWhat should our loss function look like to actually pull together words that are similar (or push away words that are not similar)? What gradients flow back once we have a scalar loss? Vanilla Training Method Here, we want the model to assign high probability to the correct context word. We don’t care about other words right now - we just want:\nLow loss when the predicted context word is the actual neighbor High loss when the predicition is far off (e.g., coffee showing up near bird) Since this is a multi-class classification task (predict 1 word out of vocab_size), the natural choice is to use cross-entropy loss applied on top of a softmax.\nThe Goal:\nMaximize the probability of the true context word $w_o$, given the center word $ w_c $: $$ P(w_o \\mid w_c) = \\frac{e^{u_o^\\top v_c}}{\\sum_{w=1}^{V} e^{u_w^\\top v_c}} $$\nMath symbols scare me too so I’ll break down what that it saying. The numerator measures how close the correct word is to the center word (via dot product). The denominator compares the center word to every word in the vocabulary. So if $w_o$ is genuinely close to $w_c$, we get a large numerator. If a bunhc of irrelevant words are also close, we would have a large denominator.\nWe want to maximize this probability so that means making the true word similarity as big as possible while keeping all other dot products in the denominator small. In this case, cross-entropy loss is the star.\nIt’s defined as:\n$$ L = -\\log\\ \\Bigl( \\frac{\\exp(u_o^T v_c)} {\\sum_{w=1}^{V} \\exp(u_w^T v_c)} \\Bigr) $$\nThis basically measures “how surprised are we by the correct answer?”, exactly what we should be asking when we predict a good/bad word. We now have a scalar loss that we can backpropagate through our network (with loss.backward()).\nDuring backpropagation, only the embeddings of the center word and the true context word actually get updated. All other words are just there to normalize the softmax, they aren’t contributing anything else. This is why is method is so inefficient - we are doing a HUGE amount of computation just to update 2 weights (crunching 50k numbers to update 2 weights).\nLet’s fix this O(V) nightmare in the next section with negative sampling.\nSkip Gram with Negative Sampling First, here’s some terms that we are going to be referencing\n$\\sigma(x) = \\frac{1}{1 + e^{-x}}$ is the sigmoid function $u_o$ is the embedding of the true context word (positive) $u_i$ are the embeddings of $k$ negative words Let’s address this bottleneck now. Instead of predicting one word out of 50k, we can turn it into a binary classification task.\nTrue context word → label it 1\nRandom (irrelevant) word → label it 0\nFor every center word, we train on:\nOne positive pair (center, actual context word) k negative pairs (center, randomly sampled “noise” words) And we are going to use the sigmoid function here instead of softmax so that each pair is treated independently.\nProbability Objective:\nWe want to maximize the probability that a real word pair appears together:\n$$ P(\\text{real} \\mid w_c, w_o) = \\sigma(u_o^\\top v_c) $$\nAnd for a negative (fake) sample, we want to minimize:\n$$ P(\\text{fake} \\mid w_c, w_i) = \\sigma(-u_i^\\top v_c) $$\nUnlike softmax, which compares all words at once, sigmoid allows us to independently judge each word pair, making negative sampling scalable.\nLoss Function:\n$$ L = -\\log(\\sigma(u_o^\\top v_c)) - \\sum_{i=1}^{k} \\log(\\sigma(-u_i^\\top v_c)) $$\nThis is a really cool loss function because it has two jobs. One for pulling the true word closer together and one for pushing the fake words away. We can see that the first term is calculating the negative log of the similarity between the center word and the context word. This gives us a loss that is lower when they are highly similar - exactly what we wanted.\nThe second term is where we pull in embeddings for k negative sampled words that are not in the context. We want their similarity with the center word to be low - that’s why we negate the dot product, apply sigmoid (which favors small similarity), and penalize high values. In a nutshell this pushes away random/fake context words, minimizing the chance that the model falsely thinks they belong together.\nThese two terms combined teach the model “pull what matters, push what doesn’t” without ever needing to score the entire vocabulary. Just enough positive and negative contrast, and the model figures out the structure of language from there.\nA small side note: this loss function does multiple things at once which is very iconic in machine learning. This type of loss function made way for things like GAN loss, VAEs, and Multi-objective losses.\nContinous Bag of Words (CBOW) You probably get the gist of what we do now: understand our probability objective and based on that, make a loss function.\nHere, we have to be ready to flip our heads in the opposite way. We are going to predict the center word now, given a set of context words.\nThe probability objective:\n$$ P(w_c \\mid w_{c - m}, \\dots, w_{c + m}) = \\frac{e^{u_c^\\top \\bar{v}}}{\\sum_{w=1}^{V} e^{u_w^\\top \\bar{v}}} $$\nOur loss function (with negative sampling) is:\n$$ L = -\\log(\\sigma(u_c^\\top \\bar{v})) - \\sum_{i=1}^{k} \\log(\\sigma(-u_i^\\top \\bar{v})) $$\n$\\sigma(x) = \\frac{1}{1 + e^{-x}}$ — the sigmoid function, which squashes scores into a range between 0 and 1. We use it to convert similarity scores into probabilities. $u_c$ — the output embedding of the center word (the word we’re trying to predict). Think of this like a “target” vector. $\\bar{v}$ — the average of the input (context) embeddings surrounding the center word. This is what we feed in to predict the center. $u_i$ — the output embeddings of $k$ negative samples (randomly chosen words that are not the true center). We want the model to push these words away from the context representation. Main tradeoffs We’ve seen that Word2Vec is powerful for learning dense, meaningful word embeddings from raw text — but it doesn’t come without limitations. Here are the key tradeoffs baked into its design.\nCorpus sensitivity In Word2Vec, everything is solely based off the co-occurrence statistics of words.\nA model trained on Shakespeare will associate words like thy and alas, while a model trained on Reddit/Twitter would lean towards bro and lol. The model reflects and amplifies the biases, slang, and domain of the data it sees Static Embeddings As we could see, each word gets only one vector.\nThe word bank will have the same vector whether you are talking about a financial institution, a riverbank, or even in slang how people say a lot of money is “bank” There’s no ability to disambiguate meaning based on context.\nNo OOV Handling Out of Vocab (OOV) is huge in language processing because in the real world, language is messy and spoken in many different ways. Word2Vec creates embeddings only for words seen during training.\nIf a word doesn’t appear in the corpus (look up table returns a null value), there’s no embedding and hence no meaning (even if it’s just a slight verb change: happy ➝ happier) This is very brittle in the world where vocab drift happens on a daily basis.\nLocal Co-occurrence ≠ True Semantics Word2Vec assumes words that appear together share meaning but this just isn’t true in some cases.\nDoctor and death might be close to each other if our window size is not that small, but our model would now relate these two words whereas they are complete antonyms. In general, Word2Vec struggles with antonyms a lot.\nHyperparameter Sensitivity Results can vary significantly based on their\nWindow size Negative sampling rate Embedding dimensionality Especially when training locally (where a single epoch takes foever), tuning these can be very tedious and time consuming.\nCoding it out My repository is structure as the following\nword2vec-project/ ├── data/ ├── models/ ├── notebooks/ ├── train/ │ └── train.py ├── visualization/ │ └── visualize_embeddings.py ├── word2vec/ │ └── word2vec.py ├── dataset.py ├── debug_dataloader.py ├── load_data.py ├── utils.py ├── visualize_embeddings.py ├── README.md ├── requirements.txt └── .gitignore the README contians the eval differences between the vanilla method, SGwNS, and CBOW where the differences in accuracy and training time are reflected clearly.\nConclusion Word2Vec may be old school now, but it’s still one of the most elegant and interpretable ideas in the NLP world. I really like it because it’s a great way to build up your ML intuition, understand the baby steps towards contrastive learning, and the results reflect the theory very well.\nIf you enjoyed reading this feel free to star this repository on GitHub!\n",
+  "wordCount" : "2896",
   "inLanguage": "en",
   "datePublished": "2025-01-10T18:12:56-04:00",
   "dateModified": "2025-01-10T18:12:56-04:00",
@@ -122,6 +122,21 @@
   }
 }
 </script>
+
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+          onload="renderMathInElement(document.body, {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '$', right: '$', display: false}
+            ]
+          });">
+  </script>
+
+
 </head>
 
 <body class="" id="top">
@@ -223,30 +238,38 @@
     <h1 class="post-title entry-hint-parent">
       Word2Vec from scratch: Intuition to Implementation
     </h1>
-    <div class="post-meta"><span title='2025-01-10 18:12:56 -0400 -0400'>January 10, 2025</span>&nbsp;·&nbsp;11 min&nbsp;·&nbsp;ML Theory &#43; Code
+    <div class="post-meta"><span title='2025-01-10 18:12:56 -0400 -0400'>January 10, 2025</span>&nbsp;·&nbsp;14 min&nbsp;·&nbsp;ML Theory &#43; Code
 
 </div>
   </header> 
-  <div class="post-content"><p>Have you ever thought about how we teach machines which words are similar — and which ones aren’t? It&rsquo;s wild to realize that our phones had smart autocomplete features <em>decades</em> before modern AI tools like ChatGPT became mainstream.</p>
+  <div class="post-content"><hr>
+<p><strong>TL;DR</strong>: Word2Vec kickstarted the era of learned word representations by turning words into dense vectors based on their context, capturing meaning through proximity in vector space. This blog post breaks down its core ideas, architectures (Skip-gram &amp; CBOW), and loss functions (cross-entropy vs. negative sampling).</p>
+<p>The repsitory with the corresponding PyTorch implementation is available <a href="https://github.com/akhilvreddy/word2vec-scratch">here</a>.</p>
+<hr>
+<p>Have you ever thought about how we teach machines which words are similar — and which ones aren’t? It&rsquo;s wild to realize that our phones had smart autocomplete features <em>decades</em> before modern AI tools like ChatGPT became mainstream.</p>
 <div align="center">
-  <img src="/images/word2vec_1.jpg" alt="Skip-gram architecture" width="600"/>
-  <p>In an <code>n</code>-dimensional space, words “cling” to their own axes—Word2Vec learns this by pushing true neighbors together and pulling random words apart (contrastive learning).</p>
+  <img src="/images/word2vec1.png" alt="Skip-gram architecture" width="600"/>
+  <p>In a n-dimensional space, words “cling” to their own axes—Word2Vec learns this by pushing true neighbors together and pulling random words apart (this is a form contrastive learning, teaching the model to tell 'correct' context words apart from random ones).</p>
 </div>
+<!-- ![Skip-gram architecture](/images/word2vec1.png)
+<img src="/images/word2vec1.png" alt="Skip-gram architecture" width="600" /> -->
 <p>Word embeddings laid the foundation for modern NLP models. Before transformer-style architectures took over (with their dynamic embeddings), Word2Vec was the go-to method for capturing the semantic meaning of words through dense (~ 100-300 dim) vectors.</p>
 <p>In this post, I&rsquo;m walking through the <strong>intuitions, architecture, methods, and math behind Word2Vec</strong> — and eventually implementing it from scratch using PyTorch.</p>
 <hr>
-<h2 id="-why-word2vec">💡 Why Word2Vec?<a hidden class="anchor" aria-hidden="true" href="#-why-word2vec">#</a></h2>
-<p>The core idea behind Word2Vec is that <strong>words that appear in similar contexts should have similar representations</strong> and should appear closer together in higher dimensional vector spaces. This principle — often summed up as <em>“You shall know a word by the company it keeps”</em> — forms the foundation of modern embedding models. Instead of manually designing features, Word2Vec lets the model <em>learn</em> them by predicting words based on context.</p>
+<h2 id="what-is-word2vec">What is Word2Vec?<a hidden class="anchor" aria-hidden="true" href="#what-is-word2vec">#</a></h2>
+<p>As the name suggests, Word2Vec is a method to take a word and put it into a high dimension vector space. For example, we could see</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>dog <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0.03</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">0.84</span> <span style="color:#ae81ff">0.91</span> <span style="color:#f92672">...</span> ] <span style="color:#75715e"># 300 values</span>
+</span></span></code></pre></div><p>and that&rsquo;s where the word &ldquo;dog&rdquo; would live in that space. The core idea behind creating Word2Vec is that <strong>words that appear in similar contexts should have similar representations</strong> and should appear closer together in higher dimensional vector spaces. This principle is often summed up as <em>“you shall know a word by the company it keeps”</em> and forms the foundation of modern embedding models. Instead of manually designing features, Word2Vec lets the model learn them by predicting words based on context.</p>
 <p>There are two main ways to solve this problem:</p>
 <ul>
 <li><strong>Skip-gram</strong> — Predict surrounding context words given the current word.</li>
-<li><strong>CBOW (Continuous Bag of Words)</strong> — Predict the current word given its surrounding context.</li>
+<li><strong>Continuous Bag of Words (CBOW)</strong> — Predict the current word given its surrounding context.</li>
 </ul>
 <p>In both cases, the model learns to assign each word a dense vector in a high-dimensional space — an <strong>embedding</strong> — such that semantically similar words are close together.</p>
 <p>At the heart of the model is one hashmap and two embedding matrices:</p>
 <ul>
 <li>
-<p><strong>LookupTable</strong> - Maps words from your vocabulary to a number between <code>0</code> and <code>len(vocab)-1</code> -&gt; each one of those numbers represents a row in the embedding matrices</p>
+<p><strong>Lookup Table</strong> - Maps words from your vocabulary to a number between <code>0</code> and <code>len(vocab)-1</code> ➝ each one of those numbers represents a row in the embedding matrices</p>
 </li>
 <li>
 <p><strong>E_in</strong> — Used to represent the input word</p>
@@ -255,85 +278,102 @@
 <p><strong>E_out</strong> — Used to compute predictions over context words</p>
 </li>
 </ul>
+<p>I used to get confused on why we needed two matrices because I always wondered why we couldn&rsquo;t use just a single matrix.</p>
+<p>The answer is that we need one embedding to represent the word itself and a second one to represent how it behaves as a context word. These turn out to learn slightly different properties.</p>
 <p>Here&rsquo;s an easy way to visualize a matrix like <strong>E_in</strong> or <strong>E_out</strong>.</p>
+<div align="center">
+  <img src="/images/word2vec2.png" alt="Embedding matrices" width="600"/>
+  <p>Both of these are matrices with the same dimensions but very different values (embeddings used to represent the input word vs. embeddings used to predict context).</p>
+</div>
 <p>Both are of shape <em>(vocab_size, embedding_dim)</em>. During training, we take the dot product of the input word’s vector from <code>E_in</code> with all rows of <code>E_out</code>, yielding similarity scores. A softmax is typically applied to convert these into probabilities, and the model learns by maximizing the probability of true context words. After training, we often discard <code>E_out</code> and treat <code>E_in</code> as our final word embedding matrix.</p>
-<p>TLDR of this section:
-We are learning two embedding matrices, <strong>E_in</strong> and <strong>E_out</strong> which will contain dense vectors that have information about the semantics of our corpus. We also have a couple different ways to learn these matrices (skip gram, CBOW) which approach the problem in different ways.</p>
+<p>Here, we are learning two embedding matrices, <strong>E_in</strong> and <strong>E_out</strong> which will contain dense vectors that have information about the semantics of our corpus. We also have a couple different ways to learn these matrices (skip gram, CBOW) which approach the problem in different ways.</p>
 <hr>
-<h2 id="-methods-to-approach-word-embeddings">🔍 Methods to approach word embeddings<a hidden class="anchor" aria-hidden="true" href="#-methods-to-approach-word-embeddings">#</a></h2>
-<p>The simplest way in training Word2Vec is just having two matrices <em>E_in</em> and <em>E_out</em> and initialize them with Xavier initialization. We use <strong>two separate matrices</strong> because the role of a word as a center word (input) is distinct from its role as a context word (output). Keeping them separate allows the model to learn directional context — e.g., “dog” and “bark” might be close in one direction but not the other.</p>
-<p>Formally, <code>E_in, E_out ∈ ℝ^{|V| × d}</code>, where |V| is the vocabulary size and <em>d</em> is the embedding dimension. Xavier initialization sets each weight to values drawn from a distribution whose variance keeps activations well-scaled, preventing gradients from exploding or vanishing—even in this mostly linear architecture.</p>
+<h2 id="methods-to-approach-word-embeddings">Methods to approach word embeddings<a hidden class="anchor" aria-hidden="true" href="#methods-to-approach-word-embeddings">#</a></h2>
+<p>The simplest way in training Word2Vec is first creating two matrices <em>E_in</em> and <em>E_out</em> and initializing them with Xavier. Formally, <code>E_in, E_out ∈ ℝ^{|V| × d}</code>, where <code>|V|</code> is the vocabulary size and <code>d</code> is the embedding dimension. Xavier initialization sets each weight to values drawn from a distribution whose variance keeps activations well-scaled, preventing gradients from exploding or vanishing—even in this mostly linear architecture.</p>
 <p>For a quick recap / introduction to Xavier style initialization, I recommend reading this other small <a href="https://www.geeksforgeeks.org/deep-learning/xavier-initialization/">post</a>.</p>
-<ol start="0">
-<li>
-<p>Vanilla Training Method (Warning: this will fry your GPU 😭)</p>
-<p>The the most straightfowrard way to train Word2Vec is to use the full softmax across the whole vocabulary. Here&rsquo;s how is works:</p>
+<h3 id="vanilla-training-method">Vanilla Training Method<a hidden class="anchor" aria-hidden="true" href="#vanilla-training-method">#</a></h3>
+<p>The the most straightforward way to train Word2Vec is to use the full softmax across the whole vocabulary. Here&rsquo;s how is works:</p>
 <ul>
-<li>For each center word, grab it&rsquo;s embedding vector from <em>E_in</em>. Recall that each row in <em>E_in</em> is its own embedding.</li>
-<li>Compute dot products between this vector and <strong>every</strong> row in <em>E_out</em>, giving you a tensor of shape (vocab_size,).</li>
-<li>Apply a softmax over all vocabulary words to get probabilities of what are close. You have the option to sample top k here or just pick the argmax.</li>
-<li>The model learns by maximizing probability of the true context word -&gt; shows us that we must use <em>cross-entropy loss</em>.</li>
+<li>Given a word, find it&rsquo;s row index using your lookup table.</li>
+<li>Take the row index, grab its corresponding embedding vector from <em>E_in</em> (recall that each row in <em>E_in</em> is its own embedding).</li>
+<li>Compute dot products between this vector and <strong>every</strong> row in <em>E_out</em>, giving you a tensor of shape <code>(vocab_size,)</code>.</li>
+<li>Apply a softmax over all vocabulary words to get probabilities of what are close. You have the option to sample top k here or just pick the argmax (in implementation I only used argmax).</li>
+<li>The model learns by maximizing probability of the true context word ➝ we must use <em>cross-entropy loss</em>.</li>
 <li>Backpropagate and update weights in both embedding matrices (<em>E_in</em> and <em>E_out</em>)</li>
 </ul>
 <p>Pretty straightforward right? Here&rsquo;s the catch:</p>
-<p>Every forward pass, we are doing a softmax on your entire vocabulary - and your vocabulary might be around 50000+ words in real world datasets. You are essentially doing thousands of unnecessary calculations per word pair, burning your compute and making training brutally slow, though the core weight updates are only from a small handful of words that you have.</p>
+<p>Every forward pass, we are doing a softmax on your entire vocabulary, and your vocabulary might be around 50000+ words in real world datasets. Since only a small handful of words are related to any given word, most values (I&rsquo;d say close to 98%) are going to be ~0 after the softmax. You are essentially doing thousands of unnecessary calculations per word pair, burning your compute and making training brutally slow, though the core weight updates are only from a small handful of words that you have.</p>
+<div align="center">
+  <img src="/images/word2vec3.jpeg" alt="Embedding matrices" width="600"/>
+  <p>This is what's happening behind the scenes for a forward pass for the word "dog": dog_embed @ E_out ➝ softmax ➝ argmax</p>
+</div>
 <p><strong>Bottom line:</strong>
 This method is great for understanding the core math/backprop and what exactly is going on in Word2Vec but falls short in reality (unless you have time and money to burn).</p>
-</li>
-<li>
-<p>Skip Gram with Negative Sampling (Industry standard 🔥)</p>
-<p>Essentially we are going to do what we did in the previous example but now we are going to address the bottleneck - the O(V) computation cost per forward pass. But other than that we are going to follow the same general structure.</p>
-<p>In essance, what SGwNS says is that:
-&ldquo;Computing for all 50000+ words in your vocabulary is too expensive. Let&rsquo;s just compare the center word to 1 good word (ground truth word) and take a random sample of &ldquo;bad&rdquo; words to push them away.&rdquo;</p>
-<p>So you go from softmaxxing 50k values -&gt; 1 positive dot product (your center word &lt;-&gt; the word you want (ground truth)) &amp; 5-20 negative dot products (your center word &lt;-&gt; unrelated words)</p>
-<p>We can set <code>k</code> = <code>1 (positive dot product word)</code> + <code>5-20 (negative dot product words)</code>. So now we pay O(k) instead of O(V) - huge gains. (k &lt; &lt; V)</p>
+<h3 id="skip-gram-with-negative-sampling">Skip Gram with Negative Sampling<a hidden class="anchor" aria-hidden="true" href="#skip-gram-with-negative-sampling">#</a></h3>
+<p>This is the industry standard method for training Word2Vec.</p>
+<p>We&rsquo;re keeping the same goal (learn embeddings by predicting nearby words) but we are addressing the main bottleneck: the <code>O(V)</code> cost of computing softmax over the entire vocabulary on every forward pass.</p>
+<p>What SGwNS says is</p>
+<blockquote>
+<p>&ldquo;Computing softmax over all 50000+ words in your vocabulary is too expensive. Let&rsquo;s just compare the center word to 1 good (related) word (ground truth word) and take a random sample of bad (unrelated) words to push them away&rdquo;</p></blockquote>
+<p>So we aim to maximize (and minimize) different things here:</p>
+<ul>
+<li>Maximize <code>σ(dot(E_in[center], E_out[context]))</code> → we want this close to 1</li>
+<li>Minimize <code>σ(-dot(E_in[center], E_out[negative]))</code> → we want these close to 0</li>
+</ul>
+<p>Where <code>σ</code> is the sigmoid function, not softmax. We replace the softmax with sigmoid-based binary classification, scoring each (center, context) pair individually:</p>
+<ul>
+<li>One positive pair is scored and pushed closer</li>
+<li>k negative pairs are scored and pushed apart</li>
+</ul>
+<p>This turns the multi-class classification problem into k+1 binary classifications, and the total loss is a sum of sigmoid-based log-likelihoods — way cheaper to compute and easier to train.</p>
 <p>And this is exactly how we beat the bottleneck: contrastive learning.</p>
+<div align="center">
+  <img src="/images/word2vec4.jpeg" alt="Embedding matrices" width="600"/>
+  <p>This is what's happening behind the scenes for a forward pass for the word "dog": dog_embed @ bark_embed_out ➝ sigmoid ➝ loss</p>
+</div>
 <p><strong>Bottom line:</strong>
 We are using a smart trick to push away random words that are not meaningful to our current word, hopefully resulting in results similar to the vanilla method. (Spoiler: this trick does work really well and that&rsquo;s why it is the industry standard)</p>
-</li>
-<li>
-<p>Continuous Bag of Words (also cool but slightly lower performance than SGwNS 🙉)</p>
-<p>This essentially works in the opposite direction as Skip Gram:</p>
+<h3 id="continuous-bag-of-words">Continuous Bag of Words<a hidden class="anchor" aria-hidden="true" href="#continuous-bag-of-words">#</a></h3>
+<p>This essentially works in the opposite direction as Skip-Gram.</p>
 <ul>
-<li>Instead of predicting cnontext from the center word, you predict the center word from it&rsquo;s surrounding context words (kind of like what modern day LLMs do, but on 2015 technology)</li>
+<li>Instead of predicting context from the center word, you predict the center word from it&rsquo;s surrounding context words</li>
 <li>You take all the context word embeddings, average (or sum) them, and feed the result into the model.</li>
 <li>The model then tries to guess the center word using either of the methods we talked above:
 <ul>
-<li>full softmax (like the vanilla version)</li>
+<li>full softmax (like the vanilla version, we can expect a huge computation cost as before)</li>
 <li>negative sampling (like SGwNS)</li>
 </ul>
 </li>
 </ul>
+<div align="center">
+  <img src="/images/word2vec5.jpeg" alt="Embedding matrices" width="600"/>
+  <p>This is what's happening behind the scenes for a forward pass for the word "doctor": avg_embed_out @ doctor_embed ➝ sigmoid ➝ loss</p>
+</div>
 <p><strong>Bottom line:</strong>
 Since we are comibing multiple context words into one average (or sum), CBOW trains faster than Skip-Gram and is more stable for smaller datasets. However, the main tradeoff is the fine-grained semantic realtionships because of that averaging. Most of the times, this method performs slightly worse than SGwNS and hence insn&rsquo;t that big in practice.</p>
-</li>
-</ol>
 <p>Next, let&rsquo;s talk about loss functions for each method.</p>
 <hr>
-<h2 id="-training-objective--criterion">🧠 Training Objective / Criterion<a hidden class="anchor" aria-hidden="true" href="#-training-objective--criterion">#</a></h2>
-<p>Let&rsquo;s split up the training objective by section (0, 1, or 2) and then we can ask two more sub-questions within each section:</p>
+<h2 id="training-objective">Training Objective<a hidden class="anchor" aria-hidden="true" href="#training-objective">#</a></h2>
+<p>Let&rsquo;s split up the training objective by section and then we can ask two more sub-questions within each section:</p>
 <ul>
 <li>What should our loss function look like to actually pull together words that are similar (or push away words that are not similar)?</li>
-<li>What is going to get backpropagated once we actually have a scalar loss value?</li>
+<li>What gradients flow back once we have a scalar loss?</li>
 </ul>
-<p>&ndash;</p>
-<ol start="0">
-<li>Vanilla Method</li>
-</ol>
+<h3 id="vanilla-training-method-1">Vanilla Training Method<a hidden class="anchor" aria-hidden="true" href="#vanilla-training-method-1">#</a></h3>
 <p>Here, we want the model to assign <strong>high probability to the correct context word</strong>. We don&rsquo;t care about other words right now - we just want:</p>
 <ul>
 <li>Low loss when the predicted context word is the <em>actual</em> neighbor</li>
 <li>High loss when the predicition is far off (e.g., <code>coffee</code> showing up near <code>bird</code>)</li>
 </ul>
-<p>Since this is a <strong>multi-class classification</strong> task (predict 1 word out of vocab_size), the natural loss to use is <strong>cross-entropy</strong>, applied on top of a <strong>softmax</strong>.</p>
-<p>🧮 The Goal:</p>
+<p>Since this is a <strong>multi-class classification</strong> task (predict 1 word out of vocab_size), the natural choice is to use <strong>cross-entropy loss</strong> applied on top of a <strong>softmax</strong>.</p>
+<p>The Goal:</p>
 <blockquote>
-<p>Maximize the probability of the true context word $w_o$, given the center word $w_c$:
+<p>Maximize the probability of the true context word $w_o$, given the center word $ w_c $:
 $$
 P(w_o \mid w_c) = \frac{e^{u_o^\top v_c}}{\sum_{w=1}^{V} e^{u_w^\top v_c}}
 $$</p></blockquote>
-<p>Math symbols scare me too so I&rsquo;ll break down what that it saying. The numerator is how similar the correct word is to the center word. The denominator is how similar every word in the vocab is to the center word. So if the correct context word is super close in high dimensional space, we have a larger numerator (good!). If a bunch of random words are also closeby our denominator increases (bad!).</p>
-<p>We want to maximize this probability so that means making the true word similarity as big as possible while keeping all other dot products in the denominator small. Since this is a probability, <em>cross-entropy loss</em> is the star.</p>
+<p>Math symbols scare me too so I&rsquo;ll break down what that it saying. The numerator measures how close the correct word is to the center word (via dot product). The denominator compares the center word to every word in the vocabulary. So if $w_o$ is genuinely close to $w_c$, we get a large numerator. If a bunhc of irrelevant words are also close, we would have a large denominator.</p>
+<p>We want to maximize this probability so that means making the true word similarity as big as possible while keeping all other dot products in the denominator small. In this case, <em>cross-entropy loss</em> is the star.</p>
 <p>It&rsquo;s defined as:</p>
 <p>$$
 L = -\log\ \Bigl(
@@ -341,50 +381,47 @@ L = -\log\ \Bigl(
 {\sum_{w=1}^{V} \exp(u_w^T v_c)}
 \Bigr)
 $$</p>
-<p>This basically measures &ldquo;how surprised are we by the correct answer?&rdquo;, exactly what we should be asking when we predict a good/bad word. We now have a scalar loss that we can backpropagate through our network (loss.backward())</p>
+<p>This basically measures &ldquo;how surprised are we by the correct answer?&rdquo;, exactly what we should be asking when we predict a good/bad word. We now have a scalar loss that we can backpropagate through our network (with <code>loss.backward()</code>).</p>
 <p>During backpropagation, only the embeddings of the center word and the true context word actually get updated. All other words are just there to normalize the softmax, they aren&rsquo;t contributing anything else. This is why is method is so inefficient - we are doing a HUGE amount of computation just to update 2 weights (crunching 50k numbers to update 2 weights).</p>
-<p>Let&rsquo;s fix this <strong>O(V) nightmare</strong> in the next section with negative sampling. However, we would need to change our training objective now.</p>
-<p>&ndash;</p>
-<ol>
-<li>Skip Gram with Negative Sampling</li>
-</ol>
+<p>Let&rsquo;s fix this <strong>O(V) nightmare</strong> in the next section with negative sampling.</p>
+<h3 id="skip-gram-with-negative-sampling-1">Skip Gram with Negative Sampling<a hidden class="anchor" aria-hidden="true" href="#skip-gram-with-negative-sampling-1">#</a></h3>
+<p>First, here&rsquo;s some terms that we are going to be referencing</p>
+<ul>
+<li>$\sigma(x) = \frac{1}{1 + e^{-x}}$ is the sigmoid function</li>
+<li>$u_o$ is the embedding of the true context word (positive)</li>
+<li>$u_i$ are the embeddings of $k$ negative words</li>
+</ul>
 <p>Let&rsquo;s address this bottleneck now. Instead of predicting one word out of 50k, we can turn it into a binary classification task.</p>
 <blockquote>
-<p>Is this a <em>true context word</em> -&gt; label = 1</p></blockquote>
+<p><em>True context word</em> → label it 1</p></blockquote>
 <blockquote>
-<p>Is this a <em>random irrelevant word</em> -&gt; label = 0</p></blockquote>
+<p><em>Random (irrelevant) word</em> → label it 0</p></blockquote>
 <p>For every center word, we train on:</p>
 <ul>
 <li>One positive pair (center, actual context word)</li>
 <li><code>k</code> negative pairs (center, randomly sampled &ldquo;noise&rdquo; words)</li>
 </ul>
-<p>And we are going to use the sigmoid function here instead of softmax so that each pair is treated independently. (This used to confuse me a lot too at first, but I just don&rsquo;t have the space to write about it more in this post ☹️).</p>
+<p>And we are going to use the sigmoid function here instead of softmax so that each pair is treated independently.</p>
 <p><strong>Probability Objective:</strong></p>
 <p>We want to maximize the probability that a real word pair appears together:</p>
 <p>$$
 P(\text{real} \mid w_c, w_o) = \sigma(u_o^\top v_c)
 $$</p>
-<p>And for a negative (fake) sample, we want:</p>
+<p>And for a negative (fake) sample, we want to minimize:</p>
 <p>$$
 P(\text{fake} \mid w_c, w_i) = \sigma(-u_i^\top v_c)
 $$</p>
+<p>Unlike softmax, which compares all words at once, sigmoid allows us to independently judge each word pair, making negative sampling scalable.</p>
 <p><strong>Loss Function:</strong></p>
 <p>$$
 L = -\log(\sigma(u_o^\top v_c)) - \sum_{i=1}^{k} \log(\sigma(-u_i^\top v_c))
 $$</p>
 <p>This is a really cool loss function because it has two jobs. One for pulling the true word closer together and one for pushing the fake words away. We can see that the first term is calculating the negative log of the similarity between the center word and the context word. This gives us a loss that is lower when they are highly similar - exactly what we wanted.</p>
 <p>The second term is where we pull in embeddings for k negative sampled words that are not in the context. We want their similarity with the center word to be low - that&rsquo;s why we negate the dot product, apply sigmoid (which favors small similarity), and penalize high values. In a nutshell this pushes away random/fake context words, minimizing the chance that the model falsely thinks they belong together.</p>
-<p>These two terms combined teach the model &ldquo;pull what matters, push what doesn&rsquo;t&rdquo;.</p>
-<ul>
-<li>$\sigma(x) = \frac{1}{1 + e^{-x}}$ is the sigmoid function</li>
-<li>$u_o$ is the embedding of the true context word (positive)</li>
-<li>$u_i$ are the embeddings of $k$ negative words</li>
-</ul>
-<p>&ndash;</p>
-<ol start="2">
-<li>Continous Bag of Words (CBOW)</li>
-</ol>
-<p>You probably get the gist of what we do now: understand our probability objective and based on that, make a loss objective.</p>
+<p>These two terms combined teach the model &ldquo;pull what matters, push what doesn&rsquo;t&rdquo; without ever needing to score the entire vocabulary. Just enough positive and negative contrast, and the model figures out the structure of language from there.</p>
+<p>A small side note: this loss function does multiple things at once which is very iconic in machine learning. This type of loss function made way for things like GAN loss, VAEs, and Multi-objective losses.</p>
+<h3 id="continous-bag-of-words-cbow">Continous Bag of Words (CBOW)<a hidden class="anchor" aria-hidden="true" href="#continous-bag-of-words-cbow">#</a></h3>
+<p>You probably get the gist of what we do now: understand our probability objective and based on that, make a loss function.</p>
 <p>Here, we have to be ready to flip our heads in the opposite way. We are going to predict the center word now, given a set of context words.</p>
 <p>The probability objective:</p>
 <p>$$
@@ -401,17 +438,67 @@ $$</p>
 <li>$u_i$ — the output embeddings of $k$ negative samples (randomly chosen words that are not the true center). We want the model to push these words away from the context representation.</li>
 </ul>
 <hr>
-<h2 id="-coding-it-out">🛠️ Coding it out<a hidden class="anchor" aria-hidden="true" href="#-coding-it-out">#</a></h2>
-<p>I&rsquo;ll be putting in snippets here but to view the entire repository, please go over to <a href="">github</a>.</p>
-<p><em>coming tmr</em></p>
+<h2 id="main-tradeoffs">Main tradeoffs<a hidden class="anchor" aria-hidden="true" href="#main-tradeoffs">#</a></h2>
+<p>We’ve seen that Word2Vec is powerful for learning dense, meaningful word embeddings from raw text — but it doesn’t come without limitations. Here are the key tradeoffs baked into its design.</p>
+<h3 id="corpus-sensitivity">Corpus sensitivity<a hidden class="anchor" aria-hidden="true" href="#corpus-sensitivity">#</a></h3>
+<p>In Word2Vec, everything is solely based off the co-occurrence statistics of words.</p>
+<ul>
+<li>A model trained on Shakespeare will associate words like <em>thy</em> and <em>alas</em>, while a model trained on Reddit/Twitter would lean towards <em>bro</em> and <em>lol</em>.</li>
+<li>The model reflects and amplifies the biases, slang, and domain of the data it sees</li>
+</ul>
+<h3 id="static-embeddings">Static Embeddings<a hidden class="anchor" aria-hidden="true" href="#static-embeddings">#</a></h3>
+<p>As we could see, each word gets only one vector.</p>
+<ul>
+<li>The word <em>bank</em> will have the same vector whether you are talking about a financial institution, a riverbank, or even in slang how people say a lot of money is &ldquo;bank&rdquo;</li>
+</ul>
+<p>There&rsquo;s no ability to disambiguate meaning based on context.</p>
+<h3 id="no-oov-handling">No OOV Handling<a hidden class="anchor" aria-hidden="true" href="#no-oov-handling">#</a></h3>
+<p>Out of Vocab (OOV) is huge in language processing because in the real world, language is messy and spoken in many different ways. Word2Vec creates embeddings only for words seen during training.</p>
+<ul>
+<li>If a word doesn&rsquo;t appear in the corpus (look up table returns a null value), there&rsquo;s no embedding and hence no meaning (even if it&rsquo;s just a slight verb change: happy ➝ happier)</li>
+</ul>
+<p>This is very brittle in the world where vocab drift happens on a daily basis.</p>
+<h3 id="local-co-occurrence--true-semantics">Local Co-occurrence ≠ True Semantics<a hidden class="anchor" aria-hidden="true" href="#local-co-occurrence--true-semantics">#</a></h3>
+<p>Word2Vec assumes words that appear together share meaning but this just isn&rsquo;t true in some cases.</p>
+<ul>
+<li><em>Doctor</em> and <em>death</em> might be close to each other if our window size is not that small, but our model would now relate these two words whereas they are complete antonyms.</li>
+</ul>
+<p>In general, Word2Vec struggles with antonyms <strong>a lot</strong>.</p>
+<h3 id="hyperparameter-sensitivity">Hyperparameter Sensitivity<a hidden class="anchor" aria-hidden="true" href="#hyperparameter-sensitivity">#</a></h3>
+<p>Results can vary significantly based on their</p>
+<ul>
+<li>Window size</li>
+<li>Negative sampling rate</li>
+<li>Embedding dimensionality</li>
+</ul>
+<p>Especially when training locally (where a single epoch takes foever), tuning these can be very tedious and time consuming.</p>
 <hr>
-<h2 id="-tradeoffs-recap">🦾 Tradeoffs Recap<a hidden class="anchor" aria-hidden="true" href="#-tradeoffs-recap">#</a></h2>
-<p>I&rsquo;ll be putting in snippets here but to view the entire repository, please go over to <a href="">github</a>.</p>
-<p><em>coming tmr</em></p>
+<h2 id="coding-it-out">Coding it out<a hidden class="anchor" aria-hidden="true" href="#coding-it-out">#</a></h2>
+<p>My repository is structure as the following</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>word2vec-project/
+</span></span><span style="display:flex;"><span>├── data/
+</span></span><span style="display:flex;"><span>├── models/
+</span></span><span style="display:flex;"><span>├── notebooks/
+</span></span><span style="display:flex;"><span>├── train/
+</span></span><span style="display:flex;"><span>│   └── train.py
+</span></span><span style="display:flex;"><span>├── visualization/
+</span></span><span style="display:flex;"><span>│   └── visualize_embeddings.py
+</span></span><span style="display:flex;"><span>├── word2vec/
+</span></span><span style="display:flex;"><span>│   └── word2vec.py
+</span></span><span style="display:flex;"><span>├── dataset.py
+</span></span><span style="display:flex;"><span>├── debug_dataloader.py
+</span></span><span style="display:flex;"><span>├── load_data.py
+</span></span><span style="display:flex;"><span>├── utils.py
+</span></span><span style="display:flex;"><span>├── visualize_embeddings.py
+</span></span><span style="display:flex;"><span>├── README.md
+</span></span><span style="display:flex;"><span>├── requirements.txt
+</span></span><span style="display:flex;"><span>└── .gitignore
+</span></span></code></pre></div><p>the README contians the eval differences between the vanilla method, SGwNS, and CBOW where the differences in accuracy and training time are reflected clearly.</p>
 <hr>
-<h2 id="-tldr--summary">⚙️ TL;DR / Summary<a hidden class="anchor" aria-hidden="true" href="#-tldr--summary">#</a></h2>
-<p>Word2Vec may be old school now, but it&rsquo;s still one of the most elegant and interpretable ideas in the NLP world. It&rsquo;s also a great way to build up your ML intuition, understand the baby steps towards contrastive learning, and get comfortable with training loops.</p>
-<p>If you enjoyed reading this feel free to star this <a href="">repo</a> on github 🙂</p>
+<h2 id="conclusion">Conclusion<a hidden class="anchor" aria-hidden="true" href="#conclusion">#</a></h2>
+<p>Word2Vec may be old school now, but it&rsquo;s still one of the most elegant and interpretable ideas in the NLP world. I really like it because it&rsquo;s a great way to build up your ML intuition, understand the baby steps towards contrastive learning, and the results reflect the theory very well.</p>
+<p>If you enjoyed reading this feel free to star this <a href="https://github.com/akhilvreddy/word2vec-scratch">repository</a> on GitHub!</p>
+
 
   </div>
 

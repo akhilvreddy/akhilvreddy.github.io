@@ -6,8 +6,15 @@
     <description>Recent content in Hi, I&#39;m Akhil on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 07 Jul 2025 18:12:56 -0400</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Engineering Dopamine: A deep dive into Tiktok&#39;s algorithm</title>
+      <link>https://akhilvreddy.github.io/posts/tiktok/</link>
+      <pubDate>Mon, 07 Jul 2025 18:12:56 -0400</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/tiktok/</guid>
+      <description>For the first time in human history, we can get dopamine with 0 effort. It&amp;rsquo;s quite dangerous but the engineering behind it is marvelous.</description>
+    </item>
     <item>
       <title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR</title>
       <link>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</link>
