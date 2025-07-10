@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Vae on Akhil’s Blog</title>
+    <link>http://localhost:1313/tags/vae/</link>
+    <description>Recent content in Vae on Akhil’s Blog</description>
+    <generator>Hugo -- 0.147.8</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 07 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/vae/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CUDA really isn&#39;t that bad</title>
+      <link>http://localhost:1313/posts/cuda/</link>
+      <pubDate>Mon, 07 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/cuda/</guid>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+    </item>
+  </channel>
+</rss>

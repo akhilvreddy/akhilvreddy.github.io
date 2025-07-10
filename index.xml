@@ -6,15 +6,8 @@
     <description>Recent content in Hi, I&#39;m Akhil on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 07 Jul 2025 18:12:56 -0400</lastBuildDate>
+    <lastBuildDate>Tue, 01 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/index.xml" rel="self" type="application/rss+xml" />
-    <item>
-      <title>Engineering Dopamine: A deep dive into Tiktok&#39;s algorithm</title>
-      <link>https://akhilvreddy.github.io/posts/tiktok/</link>
-      <pubDate>Mon, 07 Jul 2025 18:12:56 -0400</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/tiktok/</guid>
-      <description>For the first time in human history, we can get dopamine with 0 effort. It&amp;rsquo;s quite dangerous but the engineering behind it is marvelous.</description>
-    </item>
     <item>
       <title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR</title>
       <link>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</link>
@@ -86,14 +79,14 @@
       <description>I guess I&amp;rsquo;m writing a blog now.</description>
     </item>
     <item>
-      <title>Tooling 🔧</title>
+      <title>Tooling</title>
       <link>https://akhilvreddy.github.io/tooling/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/tooling/</guid>
-      <description>&lt;p&gt;After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on. They’re the ones that actually make my workflow fast, smooth, and fun.&lt;/p&gt;
+      <description>&lt;p&gt;After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.&lt;/p&gt;
 &lt;hr&gt;
-&lt;h3 id=&#34;0-development-environment&#34;&gt;0) Development Environment &lt;p&gt;&lt;p&gt;&lt;/h3&gt;
-&lt;p&gt;&lt;strong&gt;Machine&lt;/strong&gt;: I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train a good amount of models locally if needed and enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop + Cursor + FastAPI + Docker + a bunch of browser tabs without my machine slowing down at all.&lt;/p&gt;</description>
+&lt;h3 id=&#34;development-environment&#34;&gt;Development Environment &lt;p&gt;&lt;p&gt;&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;Machine&lt;/strong&gt; I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop + Cursor + FastAPI + Docker + a bunch of browser tabs without my machine slowing down at all.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

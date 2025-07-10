@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Tooling | Akhil’s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.
+
+Development Environment 
+Machine I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop &#43; Cursor &#43; FastAPI &#43; Docker &#43; a bunch of browser tabs without my machine slowing down at all.">
+<meta name="author" content="">
+<link rel="canonical" href="https://akhilvreddy.github.io/tooling/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://akhilvreddy.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://akhilvreddy.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://akhilvreddy.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://akhilvreddy.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://akhilvreddy.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://akhilvreddy.github.io/tooling/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript><meta property="og:url" content="https://akhilvreddy.github.io/tooling/">
+  <meta property="og:site_name" content="Akhil’s Blog">
+  <meta property="og:title" content="Tooling">
+  <meta property="og:description" content="After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.
+Development Environment Machine I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop &#43; Cursor &#43; FastAPI &#43; Docker &#43; a bunch of browser tabs without my machine slowing down at all.">
+  <meta property="og:locale" content="en-us">
+  <meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tooling">
+<meta name="twitter:description" content="After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.
+
+Development Environment 
+Machine I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop &#43; Cursor &#43; FastAPI &#43; Docker &#43; a bunch of browser tabs without my machine slowing down at all.">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Tooling",
+      "item": "https://akhilvreddy.github.io/tooling/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Tooling",
+  "name": "Tooling",
+  "description": "After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.\nDevelopment Environment Machine I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop + Cursor + FastAPI + Docker + a bunch of browser tabs without my machine slowing down at all.\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.\nDevelopment Environment Machine I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop + Cursor + FastAPI + Docker + a bunch of browser tabs without my machine slowing down at all.\nEditors \u0026 Terminal Cursor (Pro) I used to be super against using Cursor because it was “robbing” me of learning ML properly and it felt like cutting corners (especially when it throws in a tensor .unsqueeze by itself and solves bugs I hadn’t fully debugged yet, which was scary at first). But after using it I realized that it’s the direction that the world is going in and not using it would actually put me behind. I actually really like switching between the agent and manual modes.\nOther than that, I use the main VSCode extensions and have Black, Pylance, Jupyter, and Dev Containers for ML workflows.\nWarp I also disliked Warp at first because I used to be in awe of engineers that memorized that most unique flags for random CLI tools. But just like Cursor, you either use it to supercharge you or risk falling behind. Warp’s async output, smart command history, and AI enhancements make you faster in every way.\ntmux I don’t use it much when developing locally, but on remote servers, it’s non-negotiable. I’ve used tmux at work and when I was doing research to run long training jobs, monitor logs, and switch sessions across SSH.\nShell zsh + Oh My Zsh + custom aliases + Starship prompt = you never have to worry if you are running code from the wrong place again.\nMachine Learning Stack PyTorch Probably my most favorite framework of all time. Building it from scratch in grad school really taught me how revolutionary the dynamic computation graph is.\nHugging Face Transformers + Datasets For NLP, fine-tuning, and zero/one shot classification.\nWeights \u0026 Biases Training runs, experiment tracking, visualizations.\nscikit-learn Go to tool when I’m not doing deep learning.\nXGBoost/LightGBM For kaggle mostly: tabular supremacy, interpretability, and performance.\nTriton I haven’t written many custom GPU kernels yet, but when I do, Triton feels way more intuitive than raw CUDA.\nLangChain Only when I’m prototyping LLM chaining tasks quickly.\nMLOps \u0026 Deployment Docker For reproducible training environments. I use CUDA-based images for GPU workloads.\nFastAPI My go-to for serving models with lightweight REST APIs.\nTorchServe For proper model versioning + production inference.\nONNX For cross-framework model export + edge deployment.\nMLflow For model registry + pipeline tracking (used in multi-model workflows).\nAWS (SageMaker, EC2, S3) For cloud training, especially heavy workloads.\nMy favorite stack is Docker + FastAPI + TorchServe to deploy model APIs with versioning, health checks, and autoscaling on EC2.\nData Tools (Cleaning and Analysis) Pandas GOAT framework in my opinion once you understand the annoying square bracket notation - I like cleaning data and restructuring data with it.\nmatplotlib + seaborn + plotly Each one of these excels in its own direction but I wish there was a unified visualization API that covers the strengths of all three without constantly switching between syntax or config styles.\nSwitching gears a little bit.\nFrontend I don’t do much frontend development anymore but I did spend a whole co-op writing AngularJS and worked on the entire frontend for an MVP of a failed startup.\nReact Simple, re-usable, and I actually feel like LLMs dominate in writing really good React code. I like pairing React with Tailwind and Vite for fast prototyping.\nAngular I used this at my co-op for building data-dense, read-heavy interfaces. It did the job well in that context, but I haven’t seen Angular outperform React in flexibility or dev experience (I’m kind of happy Angular is fading away).\nBackend FastAPI My go-to Python web framework for building async-ready APIs with built-in OpenAPI docs. Type hints + Pydantic gives clean contracts, fast development, and easy debugging. I’ve used FastAPI for everything from model serving and microservices to quick internal tools.\nUvicorn Fast ASGI server I use to run FastAPI apps. It handles async HTTP requests with minimal overhead.\nGunicorn I pair this with Uvicorn behind Nginx when deploying to production, it handles worker management and scaling.\nTypeScript (Node.js + Express / tRPC) When building full-stack apps, I write backends in TypeScript for type-safe API contracts and tight integration with React frontends. I’ve used Express, tRPC, and Next.js API routes depending on the app and it’s scale.\nDatabases PostgreSQL My default RDBMS for anything with structured data. I like how it has flexible schema, JSONB support, and just works at scale. I’ve used it for everything from user auth to logging model predictions. Once I found out that Railways has a free tier I’ve basically used this for every small project.\nSQLite Also a really good lightweight DB for local testing, prototyping, and quick scripts when spinning up a full Postgres DB isn’t worth it.\nMongoDB My favorite NoSQL database - I use it mostly when doing full stack app dev, not that much in ML workflows.\nRedis (light usage) Manages caching, rate limiting, real-time features, and lightweight queuing. I don’t use it too much when developing by myself.\nRabbitMQ / Kafka (light usage) Used for async task handling and stream processing in some ML workflows (haven’t touched it much outside of work).\nCI/CD and Containerization GitHub Actions Handles my full CI/CD pipeline — tests, linters, type checks, and deployments. It keeps workflows minimal but reliable and I like how well it works with github.\nDocker I like to containerize everything — dev environments, ML models, APIs because if it runs in Docker, I know it’ll run anywhere. It also makes deployments smooth across local, EC2, or K8s.\nMakefiles I use it to script repeatable build + test + deploy workflows.\nInfra / Cloud AWS (EC2, S3, SageMaker) Default cloud stack for hosting APIs, storing data, and training models.\nNginx Reverse proxy for Dockerized FastAPI apps. It takes care of routing, SSL, and healthchecks easily.\nTerraform (for long-term infra) Learned it at an internship and realized that once you understand it, it’ll help setting up reusable environments. However, it is definitely overkill in a lot of places.\nDocker Compose Go-to for spinning up multi-service apps locally — DB + API + frontend with one command.\n",
+  "wordCount" : "1102",
+  "inLanguage": "en",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://akhilvreddy.github.io/tooling/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Akhil’s Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://akhilvreddy.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://akhilvreddy.github.io/" accesskey="h" title="Akhil’s Blog (Alt + H)">Akhil’s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://akhilvreddy.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://akhilvreddy.github.io/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://akhilvreddy.github.io/tooling/" title="Tooling">
+                    <span class="active">Tooling</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.github.com/akhilvreddy" title="GitHub">
+                    <span>GitHub</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/akhilvreddy" title="LinkedIn">
+                    <span>LinkedIn</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+            <li>
+                <a href="https://www.linkedin.com/in/akhilvreddy" title="X">
+                    <span>X</span>&nbsp;
+                    <svg fill="none" shape-rendering="geometricPrecision" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" height="12" width="12">
+                        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"></path>
+                        <path d="M15 3h6v6"></path>
+                        <path d="M10 14L21 3"></path>
+                    </svg>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Tooling
+    </h1>
+  </header> 
+  <div class="post-content"><p>After a lot of trial, error, and late-night debugging, these are the tools, libraries, and frameworks I’ve come to rely on.</p>
+<hr>
+<h3 id="development-environment">Development Environment <p><p><a hidden class="anchor" aria-hidden="true" href="#development-environment">#</a></h3>
+<p><strong>Machine</strong> I use a MacBook Pro 16” (M4, 64GB Unified Memory, 512GB SSD). When getting a laptop, I wanted a machine that could train some models locally if needed and have enough compute to play around with open source models on the laptop itself. I love the 64GB because it lets me run a training loop + Cursor + FastAPI + Docker + a bunch of browser tabs without my machine slowing down at all.</p>
+<hr>
+<h3 id="editors--terminal">Editors &amp; Terminal <p><p><a hidden class="anchor" aria-hidden="true" href="#editors--terminal">#</a></h3>
+<p><strong>Cursor (Pro)</strong> I used to be super against using Cursor because it was &ldquo;robbing&rdquo; me of learning ML properly and it felt like cutting corners (especially when it throws in a tensor <code>.unsqueeze</code> by itself and solves bugs I hadn’t fully debugged yet, which was scary at first). But after using it I realized that it&rsquo;s the direction that the world is going in and not using it would actually put me behind. I actually really like switching between the agent and manual modes.</p>
+<p>Other than that, I use the main VSCode extensions and have Black, Pylance, Jupyter, and Dev Containers for ML workflows.</p>
+<p><strong>Warp</strong> I also disliked Warp at first because I used to be in awe of engineers that memorized that most unique flags for random CLI tools. But just like Cursor, you either use it to supercharge you or risk falling behind. Warp’s async output, smart command history, and AI enhancements make you faster in every way.</p>
+<p><strong>tmux</strong> I don’t use it much when developing locally, but on remote servers, it’s non-negotiable. I’ve used tmux at work and when I was doing research to run long training jobs, monitor logs, and switch sessions across SSH.</p>
+<p><strong>Shell</strong> zsh + Oh My Zsh + custom aliases + Starship prompt = you never have to worry if you are running code from the wrong place again.</p>
+<hr>
+<h3 id="machine-learning-stack">Machine Learning Stack <p><p><a hidden class="anchor" aria-hidden="true" href="#machine-learning-stack">#</a></h3>
+<p><strong>PyTorch</strong> Probably my most favorite framework of all time. Building it from scratch in grad school really taught me how revolutionary the dynamic computation graph is.</p>
+<p><strong>Hugging Face Transformers + Datasets</strong> For NLP, fine-tuning, and zero/one shot classification.</p>
+<p><strong>Weights &amp; Biases</strong> Training runs, experiment tracking, visualizations.</p>
+<p><strong>scikit-learn</strong> Go to tool when I&rsquo;m not doing deep learning.</p>
+<p><strong>XGBoost/LightGBM</strong> For kaggle mostly: tabular supremacy, interpretability, and performance.</p>
+<p><strong>Triton</strong> I haven’t written many custom GPU kernels yet, but when I do, Triton feels way more intuitive than raw CUDA.</p>
+<p><strong>LangChain</strong> Only when I’m prototyping LLM chaining tasks quickly.</p>
+<hr>
+<h3 id="mlops--deployment">MLOps &amp; Deployment <p><p><a hidden class="anchor" aria-hidden="true" href="#mlops--deployment">#</a></h3>
+<p><strong>Docker</strong> For reproducible training environments. I use CUDA-based images for GPU workloads.</p>
+<p><strong>FastAPI</strong> My go-to for serving models with lightweight REST APIs.</p>
+<p><strong>TorchServe</strong> For proper model versioning + production inference.</p>
+<p><strong>ONNX</strong> For cross-framework model export + edge deployment.</p>
+<p><strong>MLflow</strong> For model registry + pipeline tracking (used in multi-model workflows).</p>
+<p><strong>AWS (SageMaker, EC2, S3)</strong> For cloud training, especially heavy workloads.</p>
+<p>My favorite stack is Docker + FastAPI + TorchServe to deploy model APIs with versioning, health checks, and autoscaling on EC2.</p>
+<hr>
+<h3 id="data-tools-cleaning-and-analysis">Data Tools (Cleaning and Analysis) <p><p><a hidden class="anchor" aria-hidden="true" href="#data-tools-cleaning-and-analysis">#</a></h3>
+<p><strong>Pandas</strong> GOAT framework in my opinion once you understand the annoying square bracket notation - I like cleaning data and restructuring data with it.</p>
+<p><strong>matplotlib + seaborn + plotly</strong> Each one of these excels in its own direction but I wish there was a unified visualization API that covers the strengths of all three without constantly switching between syntax or config styles.</p>
+<hr>
+<p>Switching gears a little bit.</p>
+<h3 id="frontend">Frontend <p><p><a hidden class="anchor" aria-hidden="true" href="#frontend">#</a></h3>
+<p>I don&rsquo;t do much frontend development anymore but I did spend a whole co-op writing AngularJS and worked on the entire frontend for an MVP of a failed startup.</p>
+<p><strong>React</strong> Simple, re-usable, and I actually feel like LLMs dominate in writing really good React code. I like pairing React with Tailwind and Vite for fast prototyping.</p>
+<p><strong>Angular</strong> I used this at my co-op for building data-dense, read-heavy interfaces. It did the job well in that context, but I haven’t seen Angular outperform React in flexibility or dev experience (I&rsquo;m kind of happy Angular is fading away).</p>
+<hr>
+<h3 id="backend">Backend <p><p><a hidden class="anchor" aria-hidden="true" href="#backend">#</a></h3>
+<p><strong>FastAPI</strong> My go-to Python web framework for building async-ready APIs with built-in OpenAPI docs. Type hints + Pydantic gives clean contracts, fast development, and easy debugging. I&rsquo;ve used FastAPI for everything from model serving and microservices to quick internal tools.</p>
+<p><strong>Uvicorn</strong> Fast ASGI server I use to run FastAPI apps. It handles async HTTP requests with minimal overhead.</p>
+<p><strong>Gunicorn</strong> I pair this with Uvicorn behind Nginx when deploying to production, it handles worker management and scaling.</p>
+<p><strong>TypeScript (Node.js + Express / tRPC)</strong> When building full-stack apps, I write backends in TypeScript for type-safe API contracts and tight integration with React frontends. I’ve used Express, tRPC, and Next.js API routes depending on the app and it&rsquo;s scale.</p>
+<hr>
+<h3 id="databases">Databases <p><p><a hidden class="anchor" aria-hidden="true" href="#databases">#</a></h3>
+<p><strong>PostgreSQL</strong> My default RDBMS for anything with structured data. I like how it has flexible schema, JSONB support, and just works at scale. I’ve used it for everything from user auth to logging model predictions. Once I found out that Railways has a free tier I&rsquo;ve basically used this for every small project.</p>
+<p><strong>SQLite</strong> Also a really good lightweight DB for local testing, prototyping, and quick scripts when spinning up a full Postgres DB isn’t worth it.</p>
+<p><strong>MongoDB</strong> My favorite NoSQL database - I use it mostly when doing full stack app dev, not that much in ML workflows.</p>
+<p><strong>Redis (light usage)</strong> Manages caching, rate limiting, real-time features, and lightweight queuing. I don&rsquo;t use it too much when developing by myself.</p>
+<p><strong>RabbitMQ / Kafka (light usage)</strong> Used for async task handling and stream processing in some ML workflows (haven&rsquo;t touched it much outside of work).</p>
+<hr>
+<h3 id="cicd-and-containerization">CI/CD and Containerization <p><p><a hidden class="anchor" aria-hidden="true" href="#cicd-and-containerization">#</a></h3>
+<p><strong>GitHub Actions</strong> Handles my full CI/CD pipeline — tests, linters, type checks, and deployments. It keeps workflows minimal but reliable and I like how well it works with github.</p>
+<p><strong>Docker</strong> I like to containerize everything — dev environments, ML models, APIs because if it runs in Docker, I know it’ll run anywhere. It also makes deployments smooth across local, EC2, or K8s.</p>
+<p><strong>Makefiles</strong> I use it to script repeatable build + test + deploy workflows.</p>
+<hr>
+<h3 id="infra--cloud">Infra / Cloud<a hidden class="anchor" aria-hidden="true" href="#infra--cloud">#</a></h3>
+<p><strong>AWS (EC2, S3, SageMaker)</strong> Default cloud stack for hosting APIs, storing data, and training models.</p>
+<p><strong>Nginx</strong> Reverse proxy for Dockerized FastAPI apps. It takes care of routing, SSL, and healthchecks easily.</p>
+<p><strong>Terraform (for long-term infra)</strong> Learned it at an internship and realized that once you understand it, it&rsquo;ll help setting up reusable environments. However, it is definitely overkill in a lot of places.</p>
+<p><strong>Docker Compose</strong> Go-to for spinning up multi-service apps locally — DB + API + frontend with one command.</p>
+<hr>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://akhilvreddy.github.io/"> </a></span>
+
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
