@@ -6,14 +6,21 @@
     <description>Recent content in Posts on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 11 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR</title>
-      <link>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</link>
-      <pubDate>Tue, 01 Jul 2025 00:00:00 +0000</pubDate>
-      <guid>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</guid>
-      <description>In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.</description>
+      <title>CUDA really isn&#39;t that bad: Fused Ops and more complexities</title>
+      <link>https://akhilvreddy.github.io/posts/cuda2/</link>
+      <pubDate>Fri, 11 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/cuda2/</guid>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+    </item>
+    <item>
+      <title>CUDA really isn&#39;t that bad: A deep dive into kernel ops and HPC</title>
+      <link>https://akhilvreddy.github.io/posts/cuda/</link>
+      <pubDate>Thu, 03 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/cuda/</guid>
+      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
     </item>
     <item>
       <title>Designing &amp; Building an Agentic AI framework from scratch</title>
@@ -21,6 +28,13 @@
       <pubDate>Mon, 30 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/agentic-framework/</guid>
       <description>I&amp;rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.</description>
+    </item>
+    <item>
+      <title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR</title>
+      <link>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</link>
+      <pubDate>Thu, 26 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</guid>
+      <description>In the coming years, I believe Robotaxi will scale like Uber, while Waymo will scale like Lyft - if at all. This reflects a broader paradigm shift: lean vision neural networks vs. bulky, sensor-heavy autonomy.</description>
     </item>
     <item>
       <title>Deploying a toy ML model to production</title>
@@ -39,7 +53,7 @@
     <item>
       <title>Designing AlphaTicTacToe (and AlphaTicTacToeZero)</title>
       <link>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</link>
-      <pubDate>Tue, 20 May 2025 18:12:56 -0400</pubDate>
+      <pubDate>Fri, 02 May 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/alpha-tic-tac-toe/</guid>
       <description>AlphaGo blew my mind and AlphaGoZero was the cherry on top. Recreating this in a simple environment was a long term dream of mine.</description>
     </item>
@@ -53,7 +67,7 @@
     <item>
       <title>Building Transformers from scratch: Multi-Head Attention, LayerNorm, and the brain behind ChatGPT</title>
       <link>https://akhilvreddy.github.io/posts/attention-from-scratch/</link>
-      <pubDate>Mon, 03 Mar 2025 18:12:56 -0400</pubDate>
+      <pubDate>Thu, 13 Mar 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/attention-from-scratch/</guid>
       <description>I felt like I would never understand how LLMs really generate text until I actually create a transformer from scratch and actually code up multi-head self attention with non-modular, functional-style PyTorch.</description>
     </item>
