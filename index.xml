@@ -6,21 +6,39 @@
     <description>Recent content in Hi, I&#39;m Akhil on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 11 Jul 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 12 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>CUDA really isn&#39;t that bad: Fused Ops and more complexities</title>
+      <title>ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015)</title>
+      <link>https://akhilvreddy.github.io/reimplementations/resnet/</link>
+      <pubDate>Sat, 12 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/reimplementations/resnet/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1512.03385&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CUDA really isn&#39;t that bad: Tiling, Fusion, and Triton</title>
       <link>https://akhilvreddy.github.io/posts/cuda2/</link>
       <pubDate>Fri, 11 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/cuda2/</guid>
-      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+      <description>&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;: This post dives deeper into advanced CUDA performance techniques from tiling and pipelining to occupancy tuning, loop unrolling, and warp-aware memory access. I explain how real-world matrix multiplies use shared memory and grid-stride loops to handle massive inputs efficiently, and how tricks like operator fusion and double buffering unlock GPU throughput. We also look at how OpenAI’s Triton gives you Python-first control over writing custom fused GPU kernels.&lt;/p&gt;
+&lt;p&gt;The repsitory with the corresponding PyTorch implementation is available &lt;a href=&#34;https://github.com/akhilvreddy/word2vec-scratch&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;</description>
     </item>
     <item>
-      <title>CUDA really isn&#39;t that bad: A deep dive into kernel ops and HPC</title>
+      <title>Adam: A Method for Stochastic Optimization (Kingma &amp; Ba - 2014)</title>
+      <link>https://akhilvreddy.github.io/reimplementations/adam/</link>
+      <pubDate>Mon, 07 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/reimplementations/adam/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1412.6980&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>CUDA really isn&#39;t that bad: Kernel Ops and Memory Hierarchy</title>
       <link>https://akhilvreddy.github.io/posts/cuda/</link>
       <pubDate>Thu, 03 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/cuda/</guid>
-      <description>VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.</description>
+      <description>&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;TL;DR&lt;/strong&gt;: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).&lt;/p&gt;
+&lt;p&gt;The repsitory with the corresponding PyTorch implementation is available &lt;a href=&#34;https://github.com/akhilvreddy/word2vec-scratch&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Designing &amp; Building an Agentic AI framework from scratch</title>
@@ -28,6 +46,13 @@
       <pubDate>Mon, 30 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/posts/agentic-framework/</guid>
       <description>I&amp;rsquo;ve seen a lot of people use pre-made agentic frameworks to handle various tasks but I wanted to create a framework from scratch to see the brain, actions, and tools behind these agents.</description>
+    </item>
+    <item>
+      <title>Attention Is All You Need (Vaswani et al. - 2017)</title>
+      <link>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</link>
+      <pubDate>Fri, 27 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1706.03762&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Tesla&#39;s Robotaxi &gt; Google&#39;s Waymo: Vision vs. LiDAR</title>
@@ -41,7 +66,7 @@
       <link>https://akhilvreddy.github.io/reimplementations/layernorm/</link>
       <pubDate>Sun, 15 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/layernorm/</guid>
-      <description>&lt;p&gt;LayerNorm&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1607.06450&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Deploying a toy ML model to production</title>
@@ -55,10 +80,7 @@
       <link>https://akhilvreddy.github.io/reimplementations/batchnorm/</link>
       <pubDate>Tue, 10 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/batchnorm/</guid>
-      <description>&lt;h2 id=&#34;whats-batchnorm&#34;&gt;What&amp;rsquo;s BatchNorm?&lt;/h2&gt;
-&lt;h2 id=&#34;goals-for-this-reimplementation&#34;&gt;Goals for this reimplementation&lt;/h2&gt;
-&lt;h2 id=&#34;my-build&#34;&gt;My build&lt;/h2&gt;
-&lt;h2 id=&#34;the-tricky-parts&#34;&gt;The tricky parts&lt;/h2&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1502.03167&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Fun with LoRA: How low-rank can we go before adjacency matrices break down?</title>

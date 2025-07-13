@@ -2,23 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://akhilvreddy.github.io/posts/cuda2/</loc>
-    <lastmod>2025-07-11T00:00:00+00:00</lastmod>
-  </url><url>
     <loc>https://akhilvreddy.github.io/</loc>
-    <lastmod>2025-07-11T00:00:00+00:00</lastmod>
+    <lastmod>2025-07-12T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://akhilvreddy.github.io/tags/machine-learning/</loc>
+    <loc>https://akhilvreddy.github.io/reimplementations/</loc>
+    <lastmod>2025-07-12T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://akhilvreddy.github.io/reimplementations/resnet/</loc>
+    <lastmod>2025-07-12T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://akhilvreddy.github.io/posts/cuda2/</loc>
     <lastmod>2025-07-11T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/</loc>
     <lastmod>2025-07-11T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://akhilvreddy.github.io/tags/</loc>
-    <lastmod>2025-07-11T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/tags/vae/</loc>
-    <lastmod>2025-07-11T00:00:00+00:00</lastmod>
+    <loc>https://akhilvreddy.github.io/reimplementations/adam/</loc>
+    <lastmod>2025-07-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/cuda/</loc>
     <lastmod>2025-07-03T00:00:00+00:00</lastmod>
@@ -26,13 +26,13 @@
     <loc>https://akhilvreddy.github.io/posts/agentic-framework/</loc>
     <lastmod>2025-06-30T00:00:00+00:00</lastmod>
   </url><url>
+    <loc>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</loc>
+    <lastmod>2025-06-27T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>https://akhilvreddy.github.io/posts/robotaxi-vs-waymo/</loc>
     <lastmod>2025-06-26T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/reimplementations/layernorm/</loc>
-    <lastmod>2025-06-15T00:00:00+00:00</lastmod>
-  </url><url>
-    <loc>https://akhilvreddy.github.io/reimplementations/</loc>
     <lastmod>2025-06-15T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/posts/deploying-model/</loc>
@@ -63,6 +63,8 @@
     <lastmod>2024-12-29T18:12:56-04:00</lastmod>
   </url><url>
     <loc>https://akhilvreddy.github.io/categories/</loc>
+  </url><url>
+    <loc>https://akhilvreddy.github.io/tags/</loc>
   </url><url>
     <loc>https://akhilvreddy.github.io/tooling/</loc>
   </url>

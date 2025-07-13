@@ -5,9 +5,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="index, follow">
-<title>CUDA really isn&#39;t that bad: A deep dive into kernel ops and HPC | Akhil’s Blog</title>
-<meta name="keywords" content="machine learning, vae">
-<meta name="description" content="VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.">
+<title>CUDA really isn&#39;t that bad: Kernel Ops and Memory Hierarchy | Akhil’s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="
+TL;DR: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).
+The repsitory with the corresponding PyTorch implementation is available here.">
 <meta name="author" content="ML Theory &#43; Code">
 <link rel="canonical" href="https://akhilvreddy.github.io/posts/cuda/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -57,18 +59,19 @@
     </style>
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/posts/cuda/">
   <meta property="og:site_name" content="Akhil’s Blog">
-  <meta property="og:title" content="CUDA really isn&#39;t that bad: A deep dive into kernel ops and HPC">
-  <meta property="og:description" content="VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.">
+  <meta property="og:title" content="CUDA really isn&#39;t that bad: Kernel Ops and Memory Hierarchy">
+  <meta property="og:description" content=" TL;DR: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).
+The repsitory with the corresponding PyTorch implementation is available here.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2025-07-03T00:00:00+00:00">
     <meta property="article:modified_time" content="2025-07-03T00:00:00+00:00">
-    <meta property="article:tag" content="Machine Learning">
-    <meta property="article:tag" content="Vae">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="CUDA really isn&#39;t that bad: A deep dive into kernel ops and HPC">
-<meta name="twitter:description" content="VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.">
+<meta name="twitter:title" content="CUDA really isn&#39;t that bad: Kernel Ops and Memory Hierarchy">
+<meta name="twitter:description" content="
+TL;DR: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).
+The repsitory with the corresponding PyTorch implementation is available here.">
 
 
 <script type="application/ld+json">
@@ -85,7 +88,7 @@
     {
       "@type": "ListItem",
       "position":  2 ,
-      "name": "CUDA really isn't that bad: A deep dive into kernel ops and HPC",
+      "name": "CUDA really isn't that bad: Kernel Ops and Memory Hierarchy",
       "item": "https://akhilvreddy.github.io/posts/cuda/"
     }
   ]
@@ -95,14 +98,14 @@
 {
   "@context": "https://schema.org",
   "@type": "BlogPosting",
-  "headline": "CUDA really isn't that bad: A deep dive into kernel ops and HPC",
-  "name": "CUDA really isn\u0027t that bad: A deep dive into kernel ops and HPC",
-  "description": "VAEs were my introduction to machine learning and I was stuck understanding how we go from linear regression to this. However, I did end up learning a lot on this non-traditional path.",
+  "headline": "CUDA really isn't that bad: Kernel Ops and Memory Hierarchy",
+  "name": "CUDA really isn\u0027t that bad: Kernel Ops and Memory Hierarchy",
+  "description": " TL;DR: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).\nThe repsitory with the corresponding PyTorch implementation is available here.\n",
   "keywords": [
-    "machine learning", "vae"
+    
   ],
-  "articleBody": "We’re gonna talk about how variational autoencoders helped me understand what it means for a model to “learn structure.”\n$z \\sim \\mathcal{N}(0, I)$ and the decoder maps it back to $\\tilde{x}$? Bro come on that’s beautiful.\n",
-  "wordCount" : "36",
+  "articleBody": " TL;DR: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).\nThe repsitory with the corresponding PyTorch implementation is available here.\nIn my opinion, the second most terrifying phrase in ML (after non-convex optimization) might be:\nAll you have to do is write a custom CUDA kernel for …\nI hope I’m not the only person who has ever closed a GitHub tab after trying to read some CUDA code that looks like \u003c\u003c\u003c\u003e\u003e\u003e or __global__.\nThe truth is that CUDA isn’t actually that bad once you get the mental model. But in my opinion, the payoff is asymmetric. You go from writing PyTorch code to actually seeing how your matrix multiply really runs (and understanding why this stuff powers all of modern ML/DL).\nI’ll walk through the fundamentals, step by step, from threads and blocks to launching your first kernel.\nWhat is HPC? HPC = High Performance Computing\nWe’re essentially trying to squeeze out every drop of performance out of our hardware (or in this case, NVIDIA’s hardware).\nThe reach is broader than you might think. HPC shows up in all kinds of places:\nA supercomputer simulating quantum particles A Tesla running real-time inference on its GPU A PlayStation rendering different parts of a Fortnite map simultaneously One of the most popular tools for doing HPC on NVIDIA hardware is CUDA, a parallel computing platform and API that lets you unlock performance from their GPUs.\nSo even though HPC sounds like it’s for researchers at CERN with 1000-node clusters, it’s actually all around you. It’s powering what curates your Instagram feed, optimizes your YouTube recommendations, enables real-time language translation, and even helps detect fraud when you use your credit card.\nWhy CUDA feels scary (but isn’t) CUDA has a reputation that it is low-level wizardry or just a mess with things like grids, blocks, memory access patterns, and an obssessive need for everything to be “parallel”.\nBut at it’s core CUDA is just for loops but faster and with multiple indexes being processed at once (in parallel).\nWe’re writing functions (called kernels) and launching thousands of copies of that function across a bunch of mini-CPUs on the GPU.\nFor me, the hardest part was unlearning how I normally write code and thinking parallely.\nYou’re used to: “I write a for/while loop and it runs one step at a time.” CUDA flips it: “Let’s run every step at the same time, with its own ID.” Once you get that paradigm shift, you realize that CUDA is essentially mapping work to threads which go do the same operation all at once and stitch the result back together for you.\nThis is the absolute core of any type of HPC, not just CUDA. Memory models and optimizations are just different things that help this work out smoother.\nCUDA isn’t “magic.” It’s just running the same simple function thousands of times at once and giving each copy a unique index to work on.\nThe CUDA Kernel mental model A kernel is just a function that is marked with __global__ that runs on the GPU. You learn each kernel with a certain number of threads and each threads run this same exact function but with different data, bringing us parallelization. The way we can tell threads apart from each other is with their unqiue ID.\nHere’s a simple example to get started with\n// adds two vectors element-wise __global__ void vector_add(float* a, float* b, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { out[i] = a[i] + b[i]; } } It’s easy to tell that this is like C++’s cousin in terms of the format and structure. Let’s break down each part\nblockIdx.x is which block the thread is in blockDim.x is the number of threads per block theradIdx.x is the thread’s index within its block i is the global index of the thread (which data element to operate on) Let’s say we have two lists of size 1 million. In a CPU, we would have to do\nfor i in range(n): out[i] = a[i] + b[i] on our GPU that becomes,\nvector_add\u003c\u003c\u003cgrid_size, block_size\u003e\u003e\u003e(a, b, out, n); Here, we’ve launched grid_size x block_size threads and each one handles it’s own index. We aren’t looping manually, instead we are letting the GPU spawn workers in parallel.\nHere’s a simple way to thikn about threads, blocks, and grids.\nThreads are tiny workers that do a single job. Above, it could’ve been a single thread that added index 10 of a and index 10 of b together to give us out[10].\nBlocks are a group of threads - 256 threads is a default number usually (and it works well).\nA grid is all blocks in your launch, essentially the entire factory.\nEach thread knows\nint i = blockIdx.x * blockDim.x + threadIdx.x; which lets it find it’s own chunk of work.\nI’ll break down the equation because it used to confuse me at first.\nFirst, we have\nblockIdx.x * blockDim.x We’re trying to get to the specific block in the GPU that the thread lives in. Imagine if we had 5 blocks and each block had 256 threads in each. We would be able to isolate the threads from each block by multiplying the index times the number of threads per block to scale up/down different blocks.\nWe then add threadIdx.x to grab the specific thread within that layer itself.\nLet’s say we want 1000 threads, 256 per block\nint blockSize = 256; int gridSize = (n + blockSize - 1) / blockSize; vector_add\u003c\u003c\u003cgridSize, blockSize\u003e\u003e\u003e(a, b, out, n); this is like telling the GPU “run vector_add on gridSize x blockSize threads.\ngridSize actually depends on n, the number of elements that you want to do the operation on.\nblockSize is the number of threads per block. As I mentioned before, it’s commonly set to 256 because GPUs run best with thread counts that are multiples of 32 (called a warp). 256 threads → 8 warps which is well algined and efficient. We could also use 128, 512, etc. (more on this later)\ngridSize is the number of blocks you need.\nIf we say that our input array has 1000 elements (n = 1000) and we want 256 threads per block. The following equation\nint gridSize = (n + blockSize - 1) / blockSize; becomes\ngridSize = (1000 + 256 - 1) / 256 = 1255 / 256 ≈ 4.9 → floored down to 4 So we launch 4 blocks → 4 x 256 = 1024 threads, which is enough to cover your 1000 input elements. The n + blockSize - 1 is a trick to round up the division so you don’t leave any leftover work.\nPlugging in our math, we get\nvector_add\u003c\u003c\u003c4, 256\u003e\u003e\u003e(a, b, out, 1000); where we get 1024 threads, where all will compute their global index i and if i \u003c 1000 it would do out[i] = a[i] + b[i].\nLet’s look at a more real world example.\n#include #include __global__ void relu(float* x, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { out[i] = x[i] \u003e 0 ? x[i] : 0.0f; } } This isn’t that bad at all compared to the previous example. The first line of the function should look familiar. In fact that is going to show up some way or another (sometimes in multiple dimensions as well). int i = blockIdx.x * blockDim.x + threadIdx.x; is always needed for the thread to get it’s memory chunk.\nThe rest of the function looks like a regular ReLU implemented in numpy implemented on a single index. So even though we are parallelizing our setup, once we tell each thread which information to get, we are still doing the same function. Under the hood, CUDA is taking care of the parallelization for us.\nThis model of writing the core function only once but wrapping it in CUDA’s block comes up very frequently - keep it in mind.\nMemory Hierarchy Not all memory is created equal.\nThe GPU’s memory hierarchy is where performance gains (or bottlenecks) come from. That’s because unlike python or regular c++, where your variable lives in memory doesn’t really matter. In CUDA, the location of your data can make or break your performance.\nThis is because memory on the GPU isn’t one big pool (like RAM), it’s a layered system with differnet sizes, speeds, and access patterns (called vRAM).\nEach block gets scheduled on a Streaming Multiprocessor (SM), which acts kind of like a mini-CPU: managing threads, warps, and shared memory.\nWe can think of each separately\nRegisters → Data at your fingertips These are private to each thread and are used automatically by the compiler. The read times are super fast (they’re measured in clocks, not nanoseconds).\nShared Memory → Whiteboard in your room This is what you can call it by\n__shared__ float tile[BLOCK_SIZE]; These are shared between threads in the same block - it’s like a scratch pad where you can store intermediates like when doing tiling in a matmul.\nThis memory is managed manually, but is much faster than global memory.\nGlobal Memory → Cabinet in the hallway This is where the main data lives (a, b, out). Each thread can access it, but it’s pretty slow (400-600 clock cycles). The goal is going to be to minimize read/writes here as much as possible so that we can maximize performance.\nHost Memory (CPU) → Asking someone in another building This is your CPU’s RAM. If data is in host memory, it must first be copied to the GPU’s global memory before GPU threads can use it.\nAny cudaMemcpy between CPU and GPU is super expensive. We try to minimize calling to host memory even more than global memory and most of the time, we only use this to send inputs and get results.\nIn PyTorch, for example\ntensor = tensor.to(\"cuda\") this line transfers a tensor from CPU (host) memory to GPU (device) memory. By default, PyTorch tensors are created in host memory.\nLet’s take our previous example but look at what happens if we aren’t smart with memory.\n__global__ void slow_add(float* a, float* b, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { float temp = a[i]; // read from global float temp2 = b[i]; // read from global out[i] = temp + temp2; // write to global } } Here, we are doing 2 global reads and 1 global write. On average, global memory access is roughly 10x slower than register access.\nLet’s say this kernel runs with 1000 threads. That comes out to\n2000 global reads 1000 global writes So that’s 3000 slow memory accesses in total. If this is run in a loop across multiple iterations, the memory overhead adds up fast.\nInstead, imagine if we first load chunks of the data into shared memory, do all the math there, and write back to global memory only once per thread. This would reduce memory latency and boost performance a lot.\nIn CUDA, how you access memory is just as important as what your code does. You should always aim to use registers and shared memory where possible and try to minimize global memory traffic.\nHow Kernels actually run By this point, I hope you have a decent idea about the mental model (threads, blocks, and kernels), launch config (gridSize and blockSize), and the memory hierarchy (registers, shared, global, and host). Let’s now tie those concepts together and tackle some key questions for performance:\nWhat makes one kernel “better” than another Why multiple small kernels can be slow Why memory access patterns matter beyond just shared vs. global When you write a CUDA kernel and launch it with \u003c\u003c\u003e\u003e, you’re spawning thousands of threads, but they don’t all run independently. CUDA groups threads into “warps”, which is usually groups of 32 threads. A warp is the unit of execution on the GPU. Because of this number, some sneaky performance traps come in.\nIssues with branching All threads in a warp execute the same instruction at the same time. If they hit a branch like this\nif (i % 2 == 0) { out[i] = a[i] * 2; } else { out[i] = b[i] * 3; } CUDA can’t execute both branches at once. To get around this, it runs both path and masks out the threads that don’t apply - this is called warp divergence. If threads in a warp diverge, they get serialized, killing your parallelism.\nThis is why we usually don’t see if/else statements in CUDA. They are often replaced with tricks like predication (a ternary operation where just the positive branch is used)\nfloat val = (i % 2 == 0) ? a[i] * 2 : b[i] * 3; Kernel launch overhead Previously, we were able to see how easy it was to launch threads through code. However, launching a kernel isn’t free - it still has some overhead, especially on smaller workloads. Keeping thread launches to a minimum is going to help with latency.\nImagine if we apply a ReLU kernel\n__global__ void relu(float* x, float* out, int n) { int i = ... out[i] = x[i] \u003e 0 ? x[i] : 0; } and then separately do\n__global__ void square(float* x, float* out, int n) { int i = ... out[i] = x[i] * x[i]; } that’s two separate kernel launches for the same chunk of memory and the GPU has to wait between them. What if we did\n__global__ void relu_square(float* x, float* out, int n) { int i = ... out[i] = max(0, x[i]) * max(0, x[i]); } now that’s a single kernel which would result in the same answer as those two separate kernels. However, this one only needed one read, one write, and is way more efficient. This is called a fused operation and is the core of making machine learning fast.\nCoalesced memory access Another key to performance is how threads access memory.\nIf threads in a warp all access consecutive memory addresses (like a[i], a[i+1], a[i+2], …) the memory controller can coalesce them into a single transaction.\nThis is very useful to us because global memory access is very slow by default (hundreds of clock cycles) but coalesced access hides this by batching up requests efficiently.\nOn the other hand, if memory access is not coalesced (random or misaligned), the GPU has to do many transactions causing bottlenecks.\nMemory coalescing happens completely under the hood. Let’s look at this example kernel\n__global__ void readCoalesced(int* a, int* b) { int idx = threadIdx.x + blockIdx.x * blockDim.x; b[idx] = a[idx]; // aligned memory } each thread in the warp accesses\nThread 0 → a[0] Thread 1 → a[1] Thread 2 → a[2] and because these addresses are contiguous and properly aligned, the GPU memory controller can issue one big memory transcation for the whole warp.\nOn the other hand, let’s imagine if we had this\nb[idx] = a[idx * 2]; // stride = 2 now which means that our thread access would become\nThread 0 → a[0] Thread 1 → a[2] Thread 2 → a[4] which is called strided access, not contiguous. The GPU has to fetch multiple memory segments, breaking coalescing and slowing things down.\nBut why 32 threads per warp? I’ve touched on this twice but haven’t given a good explanation yet.\nNVIDIA GPUs execute instructions at the warp level, not per-thread. Each warp consists of 32 threads because the hardware is built to issue a single instruction across that many threads simultaneously.\nWe can think of it like broadcasting in PyTorch. 1 instruction gets broadcast to 32 mini-cores at once.\nEven if your block has 256 threads, the GPU splits them into 8 warps of 32 and schedules them independently.\nSo whenever we break warp structure (incorrect blockDim.x size, misaligned access, or branching), we still get our results, but they are just not running at the speed / efficiency that they could be running at.\nBut still why did they choose 32?\nWarp size = 32 because the GPU’s hardware issues instructions in lockstep across 32 lanes at a time. Each lane corresponds to a thread, it’s baked into the silicon.\nThe benefits are that\nIt’s a power of 2 (fits memory alignment and coalescing well) Balances scheduling efficiency vs hardware complexity Keeps branching divergence costs manageable (fewer than 64 or 128) Let’s say we launch 33 threads. CUDA makes 2 warps: one full (32 threads) and one nearly empty (1 thread). The second warp still eats up resources leading to underutilization. That’s why a good kernel config always uses multiples of 32 for blockDim.x.\nDissecting some kernels Let’s see some kernels in action now.\nBranching Kernel This is similar to what we’ve seen before.\n__global__ void conditional_multiply(float* a, float* b, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { if (i % 2 == 0) { out[i] = a[i] * 2; } else { out[i] = b[i] * 3; } } } Here, for every index, we check if it’s an even or odd index, and based on that we return the value ultiplied by 2 or 3 respectively. As we know, this leads to warp divergence because of the different branches that threads might take. It will still be functional but we lose the core of what GPUs do for us: parallelization.\nWe can improve this by doing\n__global__ void conditional_multiply(float* a, float* b, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { float val_a = a[i] * 2; float val_b = b[i] * 3; out[i] = (i % 2 == 0) ? val_a : val_b; } } which completely eliminates divergence.\nShared Memory Kernel __global__ void shared_scale(float* in, float* out, int n, float factor) { __shared__ float tile[256]; // set blockDim.x = 256 int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { tile[threadIdx.x] = in[i]; // global → shared __syncthreads(); // wait for all threads tile[threadIdx.x] *= factor; // do math __syncthreads(); // wait for all threads again out[i] = tile[threadIdx.x]; // shared → global } } Here, we are doing a basic shared memory load–compute–store pattern. We get faster math if we reuse values in tile[] multiple times, but it’s wasted effort if you just use shared memory once. Shared memory size must also match blockDim.x because each thread writes to a unique index in tile[], and we need space for all threads in the block.\nHowever, this definitely wins when threads re-use data or communicate (like in matmul, conv, softmax, etc).\nStrided Access Kernel (Uncoalesced Access Trap) __global__ void strided_copy(int* in, int* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { out[i] = in[i * 2]; // strided access (not contiguous) } } Here, for every function call, we are doing one global read and 1 global write. We see bad memory coalescing because threads in a warp access non-contiguous address, making many memory transactions (under the hood) per warp. There’s a couple ways to fix this.\nUse pre-processing to make access contiguous Use vector loads or shared memory to group loads instead of striding Here’s how we can fix the issue using shared memory\n__global__ void coalesced_copy(int* in, int* out, int n) { __shared__ int tile[256]; // blockDim.x = 256 int i = blockIdx.x * blockDim.x + threadIdx.x; int srcIdx = i * 2; if (srcIdx \u003c n) { tile[threadIdx.x] = in[srcIdx]; // gather strided but coalesced at block level } __syncthreads(); if (i \u003c n / 2) { out[i] = tile[threadIdx.x]; // output is now written contiguously } } Simple Fused Op Kernel As we saw before, if we have two or more operations that are being done sequentially, we can fuse them together to reduce thread launch overhead (and memory overhead too).\n__global__ void tanh_abs(float* x, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { float val = tanhf(x[i]); out[i] = fabsf(val); } } Here, we fused a tanh with an absolute value operator. This setup is very rare in the real world but we can profile speeds to get a better idea of the speedup that these provide.\nSequntial Ops (Tanh, Abs) The two sequential kernels we would have would look like:\n__global__ void apply_tanh(float* x, float* tmp, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { tmp[i] = tanhf(x[i]); } } __global__ void apply_abs(float* tmp, float* out, int n) { int i = blockIdx.x * blockDim.x + threadIdx.x; if (i \u003c n) { out[i] = fabsf(tmp[i]); } } Fused Ops (Tanh + Abs) How does PyTorch use this? You might be asking, “CUDA is fast, but where do we use it? Isn’t PyTorch just Python?”\nThe hidden truth is that PyTorch is Python on top but C++ and CUDA underneath. We interact with it using the Python API but this is actually a thin layer over a high-performance C++ backend (caled TorchScript) that’s packed with fused, precompiled CUDA kernels for basciallly every tensor operation you use.\nLet’s take some simple PyTorch code\nimport torch x = torch.randn(1024).cuda() y = torch.relu(x) Even though this looks like pure python, what’s actually happening is:\nPyTorch detects x is on the GPU Calling relu(x) launches a pre-optimized CUDA kernel for ReLU We get results fast because it’s all already written, compiled, and tuned If we think about it, PyTorch is just a communication layer. We write all our code in python for simplicity, but all the core operations are not run in python.\nIt’s not just ReLU, operations like:\ntorch.add torch.mul torch.sigmoid torch.matmul broadcasting arithmetic loss functions activation functions layer operations all get compiled into fused GPU kernels. This is the reason why we never have to worry about performance while writing our PyTorch code. There are some key libraries that power PyTorch under the hood like cuDNN (for conv layer, pooling, and RNNs) and CUTLASS (for matmuls).\nThese libraries that we don’t touch usually are the ones that supercharge PyTorch behind the scenes.\nCustom Kernels I started this blog post with trying to answer a question:\nAll you have to do is write a custom CUDA kernel for …\nWe finally know enough to write one and PyTorch makes it easy to implement that kernel into our own training loop.\nGiven an op with the following structure in your directory\nmy_extension/ ├── relu_kernel.cu # CUDA kernel ├── relu_bindings.cpp # C++ binding └── setup.py # Build script we can build it with python setup.py install and import to our script like\nimport my_extension output = my_extension.relu_forward(x) This gives us the full power of low-level CUDA with smooth integration with torch.Tensor.\nHowever, if you are using PyTorch on cpu (which is what works fine for simple cases), everything under the hood changes. It uses ATen, MKL, and SIMD to achieve fast matrix operations and batch operations.\nConclusion A professor I had in grad school told us that\n“Knowing Python makes you useful. Knowing how Python compiles to C makes you powerful.”\nI’d go one step further and say\n“Knowing how that C compiles down to fused CUDA kernels? That makes you dangerous.”\nThis is the invisible engine underneath everything from ChatGPT to Tesla self driving to powering all of social media. If you understand how kernels run, how threads get scheduled, and how memory gets accessed, you start to see through the abstraction and that unlocks real performance gains.\nWhat I covered here is only scratching the surface of CUDA. In the next post, I’ll dive deeper into tiling, blocking, and shared-memory in real world matrix multiplications (not just toy kernels like we had here). I also want to dive into OpenAI’s Triton which is a python-first way to write custom GPU kernels that compile to optimized CUDA under the hood (a beautiful CUDA wrapper essentially).\n",
+  "wordCount" : "4059",
   "inLanguage": "en",
   "datePublished": "2025-07-03T00:00:00Z",
   "dateModified": "2025-07-03T00:00:00Z",
@@ -230,22 +233,402 @@
   <header class="post-header">
     
     <h1 class="post-title entry-hint-parent">
-      CUDA really isn&#39;t that bad: A deep dive into kernel ops and HPC
+      CUDA really isn&#39;t that bad: Kernel Ops and Memory Hierarchy
     </h1>
-    <div class="post-meta"><span title='2025-07-03 00:00:00 +0000 UTC'>July 3, 2025</span>&nbsp;·&nbsp;1 min&nbsp;·&nbsp;ML Theory &#43; Code
+    <div class="post-meta"><span title='2025-07-03 00:00:00 +0000 UTC'>July 3, 2025</span>&nbsp;·&nbsp;20 min&nbsp;·&nbsp;ML Theory &#43; Code
 
 </div>
   </header> 
-  <div class="post-content"><p>We’re gonna talk about how variational autoencoders helped me understand what it means for a model to “learn structure.”</p>
-<p>$z \sim \mathcal{N}(0, I)$ and the decoder maps it back to $\tilde{x}$? Bro come on that’s beautiful.</p>
+  <div class="post-content"><hr>
+<p><strong>TL;DR</strong>: This post demystifies the core concepts behind CUDA, walking through how GPU kernels work, how threads and memory hierarchies are structured, and how to write and launch a kernel. It’s a hands-on introduction to CUDA for engineers who want to understand how deep learning frameworks really run under the hood (and how writing a few lines of CUDA can unlock massive speedups).</p>
+<p>The repsitory with the corresponding PyTorch implementation is available <a href="https://github.com/akhilvreddy/word2vec-scratch">here</a>.</p>
+<hr>
+<p>In my opinion, the second most terrifying phrase in ML (after <em>non-convex optimization</em>) might be:</p>
+<blockquote>
+<p>All you have to do is write a custom CUDA kernel for &hellip;</p></blockquote>
+<p>I hope I&rsquo;m not the only person who has ever closed a GitHub tab after trying to read some CUDA code that looks like <code>&lt;&lt;&lt;&gt;&gt;&gt;</code> or <code>__global__</code>.</p>
+<p>The truth is that CUDA isn&rsquo;t actually that bad once you get the mental model. But in my opinion, the payoff is <em>asymmetric</em>. You go from writing PyTorch code to actually seeing how your matrix multiply really runs (and understanding why this stuff powers all of modern ML/DL).</p>
+<p>I&rsquo;ll walk through the fundamentals, step by step, from threads and blocks to launching your first kernel.</p>
+<hr>
+<h2 id="what-is-hpc">What is HPC?<a hidden class="anchor" aria-hidden="true" href="#what-is-hpc">#</a></h2>
+<p>HPC = High Performance Computing</p>
+<p>We&rsquo;re essentially trying to squeeze out every drop of performance out of our hardware (or in this case, NVIDIA&rsquo;s hardware).</p>
+<p>The reach is broader than you might think. HPC shows up in all kinds of places:</p>
+<ul>
+<li>A supercomputer simulating quantum particles</li>
+<li>A Tesla running real-time inference on its GPU</li>
+<li>A PlayStation rendering different parts of a Fortnite map simultaneously</li>
+</ul>
+<p>One of the most popular tools for doing HPC on NVIDIA hardware is CUDA, a parallel computing platform and API that lets you unlock performance from their GPUs.</p>
+<p>So even though HPC sounds like it&rsquo;s for researchers at CERN with 1000-node clusters, it&rsquo;s actually all around you. It&rsquo;s powering what curates your Instagram feed, optimizes your YouTube recommendations, enables real-time language translation, and even helps detect fraud when you use your credit card.</p>
+<hr>
+<h2 id="why-cuda-feels-scary-but-isnt">Why CUDA feels scary (but isn&rsquo;t)<a hidden class="anchor" aria-hidden="true" href="#why-cuda-feels-scary-but-isnt">#</a></h2>
+<p>CUDA has a reputation that it is low-level wizardry or just a mess with things like grids, blocks, memory access patterns, and an obssessive need for everything to be &ldquo;parallel&rdquo;.</p>
+<p>But at it&rsquo;s core CUDA is just for loops but faster and with multiple indexes being processed at once (in parallel).</p>
+<p>We&rsquo;re writing functions (called kernels) and launching thousands of copies of that function across a bunch of mini-CPUs on the GPU.</p>
+<p>For me, the hardest part was <em>unlearning</em> how I normally write code and thinking parallely.</p>
+<ul>
+<li>You&rsquo;re used to: &ldquo;I write a for/while loop and it runs one step at a time.&rdquo;</li>
+<li>CUDA flips it: &ldquo;Let&rsquo;s run every step at the same time, with its own ID.&rdquo;</li>
+</ul>
+<p>Once you get that paradigm shift, you realize that CUDA is essentially mapping work to threads which go do the same operation all at once and stitch the result back together for you.</p>
+<p>This is the absolute core of any type of HPC, not just CUDA. Memory models and optimizations are just different things that help this work out smoother.</p>
+<p>CUDA isn’t “magic.” It’s just running the same simple function thousands of times at once and giving each copy a unique index to work on.</p>
+<hr>
+<h2 id="the-cuda-kernel-mental-model">The CUDA Kernel mental model<a hidden class="anchor" aria-hidden="true" href="#the-cuda-kernel-mental-model">#</a></h2>
+<p>A kernel is just a function that is marked with <code>__global__</code> that runs on the GPU. You learn each kernel with a certain number of threads and each threads run this same exact function but with different data, bringing us parallelization. The way we can tell threads apart from each other is with their unqiue ID.</p>
+<p>Here&rsquo;s a simple example to get started with</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// adds two vectors element-wise
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">vector_add</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> a, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> b, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> a[i] <span style="color:#f92672">+</span> b[i];
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>It&rsquo;s easy to tell that this is like C++&rsquo;s cousin in terms of the format and structure. Let&rsquo;s break down each part</p>
+<ul>
+<li><code>blockIdx.x</code> is which block the thread is in</li>
+<li><code>blockDim.x</code> is the number of threads per block</li>
+<li><code>theradIdx.x</code> is the thread&rsquo;s index within its block</li>
+<li><code>i</code> is the global index of the thread (which data element to operate on)</li>
+</ul>
+<p>Let&rsquo;s say we have two lists of size 1 million. In a CPU, we would have to do</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#f92672">=</span> a[i] <span style="color:#f92672">+</span> b[i]
+</span></span></code></pre></div><p>on our GPU that becomes,</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>vector_add<span style="color:#f92672">&lt;&lt;&lt;</span>grid_size, block_size<span style="color:#f92672">&gt;&gt;&gt;</span>(a, b, out, n);
+</span></span></code></pre></div><p>Here, we&rsquo;ve launched <code>grid_size x block_size</code> threads and each one handles it&rsquo;s own index. We aren&rsquo;t looping manually, instead we are letting the GPU spawn workers in parallel.</p>
+<p>Here&rsquo;s a simple way to thikn about threads, blocks, and grids.</p>
+<p>Threads are tiny workers that do a single job. Above, it could&rsquo;ve been a single thread that added index 10 of a and index 10 of b together to give us <code>out[10]</code>.</p>
+<p>Blocks are a group of threads - 256 threads is a default number usually (and it works well).</p>
+<p>A grid is all blocks in your launch, essentially the entire factory.</p>
+<p>Each thread knows</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x; 
+</span></span></code></pre></div><p>which lets it find it&rsquo;s own chunk of work.</p>
+<p>I&rsquo;ll break down the equation because it used to confuse me at first.</p>
+<p>First, we have</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x
+</span></span></code></pre></div><p>We&rsquo;re trying to get to the specific block in the GPU that the thread lives in. Imagine if we had 5 blocks and each block had 256 threads in each. We would be able to isolate the threads from each block by multiplying the index times the number of threads per block to scale up/down different blocks.</p>
+<p>We then add <code>threadIdx.x</code> to grab the specific thread <em>within</em> that layer itself.</p>
+<div align="center">
+  <img src="/images/cuda1.jpeg" alt="wtfff" width="600"/>
+  <p></p>
+</div>
+<p>Let&rsquo;s say we want 1000 threads, 256 per block</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> blockSize <span style="color:#f92672">=</span> <span style="color:#ae81ff">256</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> gridSize <span style="color:#f92672">=</span> (n <span style="color:#f92672">+</span> blockSize <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize;
+</span></span><span style="display:flex;"><span>vector_add<span style="color:#f92672">&lt;&lt;&lt;</span>gridSize, blockSize<span style="color:#f92672">&gt;&gt;&gt;</span>(a, b, out, n);
+</span></span></code></pre></div><p>this is like telling the GPU
+&ldquo;run <code>vector_add</code> on <strong>gridSize x blockSize threads</strong>.</p>
+<p><strong>gridSize</strong> actually depends on <code>n</code>, the number of elements that you want to do the operation on.</p>
+<p><strong>blockSize</strong> is the number of threads per block. As I mentioned before, it&rsquo;s commonly set to 256 because GPUs run best with thread counts that are multiples of 32 (called a warp). 256 threads → 8 warps which is well algined and efficient. We could also use 128, 512, etc. (more on this later)</p>
+<p><strong>gridSize</strong> is the number of blocks you need.</p>
+<p>If we say that our input array has 1000 elements (n = 1000) and we want 256 threads per block. The following equation</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> gridSize <span style="color:#f92672">=</span> (n <span style="color:#f92672">+</span> blockSize <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">/</span> blockSize;
+</span></span></code></pre></div><p>becomes</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>gridSize = (1000 + 256 - 1) / 256
+</span></span><span style="display:flex;"><span>        = 1255 / 256 ≈ 4.9 → floored down to 4
+</span></span></code></pre></div><p>So we launch 4 blocks → 4 x 256 = 1024 threads, which is enough to cover your 1000 input elements. The <code>n + blockSize - 1</code> is a trick to round up the division so you don&rsquo;t leave any leftover work.</p>
+<p>Plugging in our math, we get</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>vector_add<span style="color:#f92672">&lt;&lt;&lt;</span><span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">256</span><span style="color:#f92672">&gt;&gt;&gt;</span>(a, b, out, <span style="color:#ae81ff">1000</span>);
+</span></span></code></pre></div><p>where we get 1024 threads, where all will compute their global index <code>i</code> and if <code>i &lt; 1000</code> it would do <code>out[i] = a[i] + b[i]</code>.</p>
+<div align="center">
+  <img src="/images/cuda2.jpeg" alt="wtfff" width="600"/>
+  <p></p>
+</div>
+<p>Let&rsquo;s look at a more real world example.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;cuda_runtime.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;iostream&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">relu</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> x, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> x[i] <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">?</span> x[i] <span style="color:#f92672">:</span> <span style="color:#ae81ff">0.0f</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This isn&rsquo;t that bad at all compared to the previous example. The first line of the function should look familiar. In fact that is going to show up some way or another (sometimes in multiple dimensions as well). <code>int i = blockIdx.x * blockDim.x + threadIdx.x;</code> is always needed for the thread to get it&rsquo;s memory chunk.</p>
+<p>The rest of the function looks like a regular ReLU implemented in numpy implemented on a <em>single index</em>. So even though we are parallelizing our setup, once we tell each thread which information to get, we are still doing the same function. Under the hood, CUDA is taking care of the parallelization for us.</p>
+<p>This model of writing the core function only once but wrapping it in CUDA&rsquo;s block comes up very frequently - keep it in mind.</p>
+<hr>
+<h2 id="memory-hierarchy">Memory Hierarchy<a hidden class="anchor" aria-hidden="true" href="#memory-hierarchy">#</a></h2>
+<p>Not all memory is created equal.</p>
+<p>The GPU&rsquo;s memory hierarchy is where performance gains (or bottlenecks) come from. That&rsquo;s because unlike python or regular c++, <em>where</em> your variable lives in memory doesn&rsquo;t really matter. In CUDA, the location of your data can make or break your performance.</p>
+<p>This is because memory on the GPU isn&rsquo;t one big pool (like RAM), it&rsquo;s a layered system with differnet sizes, speeds, and access patterns (called vRAM).</p>
+<div align="center">
+  <img src="/images/cuda3.jpeg" alt="wtfff" width="400"/>
+  <p></p>
+</div>
+<p>Each block gets scheduled on a Streaming Multiprocessor (SM), which acts kind of like a mini-CPU: managing threads, warps, and shared memory.</p>
+<p>We can think of each separately</p>
+<h3 id="registers--data-at-your-fingertips">Registers → Data at your fingertips<a hidden class="anchor" aria-hidden="true" href="#registers--data-at-your-fingertips">#</a></h3>
+<p>These are private to each thread and are used automatically by the compiler. The read times are super fast (they&rsquo;re measured in clocks, not nanoseconds).</p>
+<h3 id="shared-memory--whiteboard-in-your-room">Shared Memory → Whiteboard in your room<a hidden class="anchor" aria-hidden="true" href="#shared-memory--whiteboard-in-your-room">#</a></h3>
+<p>This is what you can call it by</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__shared__ <span style="color:#66d9ef">float</span> tile[BLOCK_SIZE];
+</span></span></code></pre></div><p>These are shared between threads in the same block - it&rsquo;s like a scratch pad where you can store intermediates like when doing tiling in a matmul.</p>
+<p>This memory is managed manually, but is much faster than global memory.</p>
+<h3 id="global-memory--cabinet-in-the-hallway">Global Memory → Cabinet in the hallway<a hidden class="anchor" aria-hidden="true" href="#global-memory--cabinet-in-the-hallway">#</a></h3>
+<p>This is where the main data lives (a, b, out). Each thread can access it, but it&rsquo;s pretty slow (400-600 clock cycles). The goal is going to be to minimize read/writes here as much as possible so that we can maximize performance.</p>
+<h3 id="host-memory-cpu--asking-someone-in-another-building">Host Memory (CPU) → Asking someone in another building<a hidden class="anchor" aria-hidden="true" href="#host-memory-cpu--asking-someone-in-another-building">#</a></h3>
+<p>This is your CPU&rsquo;s RAM. If data is in host memory, it must first be copied to the GPU&rsquo;s global memory before GPU threads can use it.</p>
+<p>Any <code>cudaMemcpy</code> between CPU and GPU is <em>super expensive</em>. We try to minimize calling to host memory even more than global memory and most of the time, we only use this to send inputs and get results.</p>
+<p>In PyTorch, for example</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>tensor <span style="color:#f92672">=</span> tensor<span style="color:#f92672">.</span>to(<span style="color:#e6db74">&#34;cuda&#34;</span>)
+</span></span></code></pre></div><p>this line transfers a tensor from CPU (host) memory to GPU (device) memory. By default, PyTorch tensors are created in host memory.</p>
+<p>Let&rsquo;s take our previous example but look at what happens if we aren&rsquo;t smart with memory.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">slow_add</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> a, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> b, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> temp <span style="color:#f92672">=</span> a[i]; <span style="color:#75715e">// read from global
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">float</span> temp2 <span style="color:#f92672">=</span> b[i]; <span style="color:#75715e">// read from global
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        out[i] <span style="color:#f92672">=</span> temp <span style="color:#f92672">+</span> temp2; <span style="color:#75715e">// write to global
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here, we are doing 2 global reads and 1 global write. On average, global memory access is roughly 10x slower than register access.</p>
+<p>Let&rsquo;s say this kernel runs with 1000 threads. That comes out to</p>
+<ul>
+<li>2000 global reads</li>
+<li>1000 global writes</li>
+</ul>
+<p>So that&rsquo;s 3000 slow memory accesses in total. If this is run in a loop across multiple iterations, the memory overhead adds up fast.</p>
+<p>Instead, imagine if we first load chunks of the data into shared memory, do all the math there, and write back to global memory only once per thread. This would reduce memory latency and boost performance <strong>a lot</strong>.</p>
+<p>In CUDA, how you access memory is just as important as what your code does. You should always aim to use registers and shared memory where possible and try to minimize global memory traffic.</p>
+<hr>
+<h2 id="how-kernels-actually-run">How Kernels actually run<a hidden class="anchor" aria-hidden="true" href="#how-kernels-actually-run">#</a></h2>
+<p>By this point, I hope you have a decent idea about the mental model (threads, blocks, and kernels), launch config (gridSize and blockSize), and the memory hierarchy (registers, shared, global, and host). Let&rsquo;s now tie those concepts together and tackle some key questions for performance:</p>
+<ul>
+<li>What makes one kernel &ldquo;better&rdquo; than another</li>
+<li>Why multiple small kernels can be slow</li>
+<li>Why memory access patterns matter beyond just shared vs. global</li>
+</ul>
+<p>When you write a CUDA kernel and launch it with <code>&lt;&lt;&lt;gridSize, blockSize&gt;&gt;&gt;</code>, you&rsquo;re spawning thousands of threads, but they don&rsquo;t all run independently. CUDA groups threads into &ldquo;warps&rdquo;, which is usually groups of 32 threads. A warp is the unit of execution on the GPU. Because of this number, some sneaky performance traps come in.</p>
+<h3 id="issues-with-branching">Issues with branching<a hidden class="anchor" aria-hidden="true" href="#issues-with-branching">#</a></h3>
+<p>All threads in a warp execute the same instruction <em>at the same time</em>. If they hit a branch like this</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (i <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#f92672">=</span> a[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#f92672">=</span> b[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>CUDA can&rsquo;t execute both branches at once. To get around this, it runs both path and masks out the threads that don&rsquo;t apply - this is called <strong>warp divergence</strong>. If threads in a warp diverge, they get serialized, killing your parallelism.</p>
+<p>This is why we usually don&rsquo;t see if/else statements in CUDA. They are often replaced with tricks like predication (a ternary operation where just the positive branch is used)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">float</span> val <span style="color:#f92672">=</span> (i <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) <span style="color:#f92672">?</span> a[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">:</span> b[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>;
+</span></span></code></pre></div><h3 id="kernel-launch-overhead">Kernel launch overhead<a hidden class="anchor" aria-hidden="true" href="#kernel-launch-overhead">#</a></h3>
+<p>Previously, we were able to see how easy it was to launch threads through code. However, launching a kernel isn&rsquo;t free - it still has some overhead, especially on smaller workloads. Keeping thread launches to a minimum is going to help with latency.</p>
+<p>Imagine if we apply a ReLU kernel</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">relu</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> x, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> ...
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#f92672">=</span> x[i] <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">?</span> x[i] <span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>and then separately do</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">square</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> x, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> ...
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#f92672">=</span> x[i] <span style="color:#f92672">*</span> x[i];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>that&rsquo;s two separate kernel launches for the <em>same chunk of memory</em> and the GPU has to wait between them. What if we did</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">relu_square</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> x, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> ...
+</span></span><span style="display:flex;"><span>    out[i] <span style="color:#f92672">=</span> max(<span style="color:#ae81ff">0</span>, x[i]) <span style="color:#f92672">*</span> max(<span style="color:#ae81ff">0</span>, x[i]);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>now that&rsquo;s a single kernel which would result in the same answer as those two separate kernels. However, this one only needed one read, one write, and is way more efficient. This is called a <strong>fused operation</strong> and is the core of making machine learning fast.</p>
+<h3 id="coalesced-memory-access">Coalesced memory access<a hidden class="anchor" aria-hidden="true" href="#coalesced-memory-access">#</a></h3>
+<p>Another key to performance is how threads access memory.</p>
+<p>If threads in a warp all access consecutive memory addresses (like <code>a[i]</code>, <code>a[i+1]</code>, <code>a[i+2]</code>, &hellip;) the memory controller can coalesce them into a single transaction.</p>
+<p>This is very useful to us because global memory access is very slow by default (hundreds of clock cycles) but coalesced access hides this by batching up requests efficiently.</p>
+<p>On the other hand, if memory access is not coalesced (random or misaligned), the GPU has to do many transactions causing bottlenecks.</p>
+<p>Memory coalescing happens completely under the hood. Let&rsquo;s look at this example kernel</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">readCoalesced</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span> a, <span style="color:#66d9ef">int</span><span style="color:#f92672">*</span> b) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> idx <span style="color:#f92672">=</span> threadIdx.x <span style="color:#f92672">+</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x;
+</span></span><span style="display:flex;"><span>    b[idx] <span style="color:#f92672">=</span> a[idx];  <span style="color:#75715e">// aligned memory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>each thread in the warp accesses</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Thread 0 → a[0]
+</span></span><span style="display:flex;"><span>Thread 1 → a[1]
+</span></span><span style="display:flex;"><span>Thread 2 → a[2]
+</span></span></code></pre></div><p>and because these addresses are contiguous and properly aligned, the GPU memory controller can issue one big memory transcation for the whole warp.</p>
+<p>On the other hand, let&rsquo;s imagine if we had this</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>b[idx] <span style="color:#f92672">=</span> a[idx <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>];  <span style="color:#75715e">// stride = 2 now
+</span></span></span></code></pre></div><p>which means that our thread access would become</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>Thread 0 → a[0]
+</span></span><span style="display:flex;"><span>Thread 1 → a[2]
+</span></span><span style="display:flex;"><span>Thread 2 → a[4]
+</span></span></code></pre></div><p>which is called strided access, not contiguous. The GPU has to fetch multiple memory segments, breaking coalescing and slowing things down.</p>
+<h3 id="but-why-32-threads-per-warp">But why 32 threads per warp?<a hidden class="anchor" aria-hidden="true" href="#but-why-32-threads-per-warp">#</a></h3>
+<p>I&rsquo;ve touched on this twice but haven&rsquo;t given a good explanation yet.</p>
+<p>NVIDIA GPUs execute instructions at the warp level, not per-thread. Each warp consists of 32 threads because the hardware is built to issue a single instruction across that many threads simultaneously.</p>
+<p>We can think of it like broadcasting in PyTorch. 1 instruction gets broadcast to 32 mini-cores at once.</p>
+<p>Even if your block has 256 threads, the GPU splits them into 8 warps of 32 and schedules them independently.</p>
+<p>So whenever we break warp structure (incorrect blockDim.x size, misaligned access, or branching), we still get our results, but they are just not running at the speed / efficiency that they could be running at.</p>
+<p><strong>But still why did they choose 32?</strong></p>
+<p>Warp size = 32 because the GPU’s hardware issues instructions in lockstep across 32 lanes at a time. Each lane corresponds to a thread, it&rsquo;s baked into the silicon.</p>
+<p>The benefits are that</p>
+<ul>
+<li>It&rsquo;s a power of 2 (fits memory alignment and coalescing well)</li>
+<li>Balances scheduling efficiency vs hardware complexity</li>
+<li>Keeps branching divergence costs manageable (fewer than 64 or 128)</li>
+</ul>
+<p>Let&rsquo;s say we launch 33 threads. CUDA makes 2 warps: one full (32 threads) and one nearly empty (1 thread). The second warp still eats up resources leading to underutilization. That&rsquo;s why a good kernel config always uses multiples of 32 for <code>blockDim.x</code>.</p>
+<hr>
+<h2 id="dissecting-some-kernels">Dissecting some kernels<a hidden class="anchor" aria-hidden="true" href="#dissecting-some-kernels">#</a></h2>
+<p>Let&rsquo;s see some kernels in action now.</p>
+<ol>
+<li><strong>Branching Kernel</strong></li>
+</ol>
+<p>This is similar to what we&rsquo;ve seen before.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conditional_multiply</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> a, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> b, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            out[i] <span style="color:#f92672">=</span> a[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            out[i] <span style="color:#f92672">=</span> b[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here, for every index, we check if it&rsquo;s an even or odd index, and based on that we return the value ultiplied by 2 or 3 respectively. As we know, this leads to warp divergence because of the different branches that threads might take. It will still be functional but we lose the core of what GPUs do for us: parallelization.</p>
+<p>We can improve this by doing</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">conditional_multiply</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> a, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> b, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> val_a <span style="color:#f92672">=</span> a[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> val_b <span style="color:#f92672">=</span> b[i] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> (i <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) <span style="color:#f92672">?</span> val_a : val_b;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>which completely eliminates divergence.</p>
+<ol start="2">
+<li><strong>Shared Memory Kernel</strong></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">shared_scale</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> in, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">float</span> factor) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">float</span> tile[<span style="color:#ae81ff">256</span>]; <span style="color:#75715e">// set blockDim.x = 256
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        tile[threadIdx.x] <span style="color:#f92672">=</span> in[i]; <span style="color:#75715e">// global → shared
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        __syncthreads(); <span style="color:#75715e">// wait for all threads
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        tile[threadIdx.x] <span style="color:#f92672">*=</span> factor; <span style="color:#75715e">// do math
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        __syncthreads(); <span style="color:#75715e">// wait for all threads again
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        out[i] <span style="color:#f92672">=</span> tile[threadIdx.x]; <span style="color:#75715e">// shared → global
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here, we are doing a basic shared memory load–compute–store pattern. We get faster math if we reuse values in <code>tile[]</code> multiple times, but it&rsquo;s wasted effort if you just use shared memory once. Shared memory size must also match blockDim.x because each thread writes to a unique index in tile[], and we need space for all threads in the block.</p>
+<p>However, this definitely wins when threads re-use data or communicate (like in matmul, conv, softmax, etc).</p>
+<ol start="3">
+<li><strong>Strided Access Kernel (Uncoalesced Access Trap)</strong></li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">strided_copy</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span> in, <span style="color:#66d9ef">int</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> in[i <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>]; <span style="color:#75715e">// strided access (not contiguous)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here, for every function call, we are doing one global read and 1 global write. We see bad memory coalescing because threads in a warp access non-contiguous address, making many memory transactions (under the hood) <em>per warp</em>. There&rsquo;s a couple ways to fix this.</p>
+<ul>
+<li>Use pre-processing to make access contiguous</li>
+<li>Use vector loads or shared memory to group loads instead of striding</li>
+</ul>
+<p>Here&rsquo;s how we can fix the issue using shared memory</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">coalesced_copy</span>(<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span> in, <span style="color:#66d9ef">int</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    __shared__ <span style="color:#66d9ef">int</span> tile[<span style="color:#ae81ff">256</span>]; <span style="color:#75715e">// blockDim.x = 256
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> srcIdx <span style="color:#f92672">=</span> i <span style="color:#f92672">*</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (srcIdx <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        tile[threadIdx.x] <span style="color:#f92672">=</span> in[srcIdx]; <span style="color:#75715e">// gather strided but coalesced at block level
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    __syncthreads();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>) {
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> tile[threadIdx.x]; <span style="color:#75715e">// output is now written contiguously
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol start="4">
+<li><strong>Simple Fused Op Kernel</strong></li>
+</ol>
+<p>As we saw before, if we have two or more operations that are being done sequentially, we can fuse them together to reduce thread launch overhead (and memory overhead too).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">tanh_abs</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> x, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">float</span> val <span style="color:#f92672">=</span> tanhf(x[i]);
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> fabsf(val);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here, we fused a tanh with an absolute value operator. This setup is very rare in the real world but we can profile speeds to get a better idea of the speedup that these provide.</p>
+<h4 id="sequntial-ops-tanh-abs">Sequntial Ops (Tanh, Abs)<a hidden class="anchor" aria-hidden="true" href="#sequntial-ops-tanh-abs">#</a></h4>
+<p>The two sequential kernels we would have would look like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">apply_tanh</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> x, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> tmp, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        tmp[i] <span style="color:#f92672">=</span> tanhf(x[i]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span>__global__ <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">apply_abs</span>(<span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> tmp, <span style="color:#66d9ef">float</span><span style="color:#f92672">*</span> out, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> blockIdx.x <span style="color:#f92672">*</span> blockDim.x <span style="color:#f92672">+</span> threadIdx.x;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>        out[i] <span style="color:#f92672">=</span> fabsf(tmp[i]);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="fused-ops-tanh--abs">Fused Ops (Tanh + Abs)<a hidden class="anchor" aria-hidden="true" href="#fused-ops-tanh--abs">#</a></h4>
+<hr>
+<h2 id="how-does-pytorch-use-this">How does PyTorch use this?<a hidden class="anchor" aria-hidden="true" href="#how-does-pytorch-use-this">#</a></h2>
+<p>You might be asking, &ldquo;CUDA is fast, but where do we use it? Isn&rsquo;t PyTorch just Python?&rdquo;</p>
+<p>The hidden truth is that <strong>PyTorch is Python on top but C++ and CUDA underneath</strong>. We interact with it using the Python API but this is actually a thin layer over a high-performance C++ backend (caled TorchScript) that&rsquo;s packed with fused, precompiled CUDA kernels for basciallly every tensor operation you use.</p>
+<p>Let&rsquo;s take some simple PyTorch code</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> torch
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>x <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>randn(<span style="color:#ae81ff">1024</span>)<span style="color:#f92672">.</span>cuda()
+</span></span><span style="display:flex;"><span>y <span style="color:#f92672">=</span> torch<span style="color:#f92672">.</span>relu(x)
+</span></span></code></pre></div><p>Even though this looks like pure python, what&rsquo;s actually happening is:</p>
+<ul>
+<li>PyTorch detects <code>x</code> is on the GPU</li>
+<li>Calling <code>relu(x)</code> launches a pre-optimized CUDA kernel for ReLU</li>
+<li>We get results fast because it&rsquo;s all already written, compiled, and tuned</li>
+</ul>
+<p>If we think about it, PyTorch is just a communication layer. We write all our code in python for simplicity, but all the core operations are not run in python.</p>
+<p>It&rsquo;s not just ReLU, operations like:</p>
+<ul>
+<li>torch.add</li>
+<li>torch.mul</li>
+<li>torch.sigmoid</li>
+<li>torch.matmul</li>
+<li>broadcasting arithmetic</li>
+<li>loss functions</li>
+<li>activation functions</li>
+<li>layer operations</li>
+</ul>
+<p>all get compiled into fused GPU kernels. This is the reason why we never have to worry about performance while writing our PyTorch code. There are some key libraries that power PyTorch under the hood like <strong>cuDNN</strong> (for conv layer, pooling, and RNNs) and <strong>CUTLASS</strong> (for matmuls).</p>
+<p>These libraries that we don&rsquo;t touch usually are the ones that supercharge PyTorch behind the scenes.</p>
+<h3 id="custom-kernels">Custom Kernels<a hidden class="anchor" aria-hidden="true" href="#custom-kernels">#</a></h3>
+<p>I started this blog post with trying to answer a question:</p>
+<blockquote>
+<p>All you have to do is write a custom CUDA kernel for …</p></blockquote>
+<p>We finally know enough to write one and PyTorch makes it easy to implement that kernel into our own training loop.</p>
+<p>Given an op with the following structure in your directory</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-txt" data-lang="txt"><span style="display:flex;"><span>my_extension/
+</span></span><span style="display:flex;"><span>├── relu_kernel.cu      # CUDA kernel
+</span></span><span style="display:flex;"><span>├── relu_bindings.cpp   # C++ binding
+</span></span><span style="display:flex;"><span>└── setup.py            # Build script
+</span></span></code></pre></div><p>we can build it with <code>python setup.py install</code> and import to our script like</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> my_extension
+</span></span><span style="display:flex;"><span>output <span style="color:#f92672">=</span> my_extension<span style="color:#f92672">.</span>relu_forward(x)
+</span></span></code></pre></div><p>This gives us the full power of low-level CUDA with smooth integration with <code>torch.Tensor</code>.</p>
+<p>However, if you are using PyTorch on cpu (which is what works fine for simple cases), everything under the hood changes. It uses ATen, MKL, and SIMD to achieve fast matrix operations and batch operations.</p>
+<hr>
+<h2 id="conclusion">Conclusion<a hidden class="anchor" aria-hidden="true" href="#conclusion">#</a></h2>
+<p>A professor I had in grad school told us that</p>
+<p>&ldquo;Knowing Python makes you useful. Knowing how Python compiles to C makes you powerful.&rdquo;</p>
+<p>I&rsquo;d go one step further and say</p>
+<p>“Knowing how that C compiles down to fused CUDA kernels? That makes you dangerous.”</p>
+<p>This is the invisible engine underneath everything from ChatGPT to Tesla self driving to powering all of social media. If you understand how kernels run, how threads get scheduled, and how memory gets accessed, you start to see through the abstraction and that unlocks real performance gains.</p>
+<p>What I covered here is only scratching the surface of CUDA. In the next post, I&rsquo;ll dive deeper into tiling, blocking, and shared-memory in real world matrix multiplications (not just toy kernels like we had here). I also want to dive into OpenAI&rsquo;s Triton which is a python-first way to write custom GPU kernels that compile to optimized CUDA under the hood (a beautiful CUDA wrapper essentially).</p>
+<hr>
 
 
   </div>
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://akhilvreddy.github.io/tags/machine-learning/">Machine Learning</a></li>
-      <li><a href="https://akhilvreddy.github.io/tags/vae/">Vae</a></li>
     </ul>
   </footer>
 </article>

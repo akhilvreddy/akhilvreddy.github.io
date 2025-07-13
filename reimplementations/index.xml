@@ -6,24 +6,42 @@
     <description>Recent content in Reimplementations on Akhil’s Blog</description>
     <generator>Hugo -- 0.147.8</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 15 Jun 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sat, 12 Jul 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="https://akhilvreddy.github.io/reimplementations/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015)</title>
+      <link>https://akhilvreddy.github.io/reimplementations/resnet/</link>
+      <pubDate>Sat, 12 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/reimplementations/resnet/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1512.03385&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Adam: A Method for Stochastic Optimization (Kingma &amp; Ba - 2014)</title>
+      <link>https://akhilvreddy.github.io/reimplementations/adam/</link>
+      <pubDate>Mon, 07 Jul 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/reimplementations/adam/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1412.6980&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Attention Is All You Need (Vaswani et al. - 2017)</title>
+      <link>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</link>
+      <pubDate>Fri, 27 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1706.03762&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>LayerNorm (Ba, Kiros, and Hinton - 2016)</title>
       <link>https://akhilvreddy.github.io/reimplementations/layernorm/</link>
       <pubDate>Sun, 15 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/layernorm/</guid>
-      <description>&lt;p&gt;LayerNorm&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1607.06450&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>BatchNorm (Ioffe &amp; Szegedy - 2015)</title>
       <link>https://akhilvreddy.github.io/reimplementations/batchnorm/</link>
       <pubDate>Tue, 10 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/batchnorm/</guid>
-      <description>&lt;h2 id=&#34;whats-batchnorm&#34;&gt;What&amp;rsquo;s BatchNorm?&lt;/h2&gt;
-&lt;h2 id=&#34;goals-for-this-reimplementation&#34;&gt;Goals for this reimplementation&lt;/h2&gt;
-&lt;h2 id=&#34;my-build&#34;&gt;My build&lt;/h2&gt;
-&lt;h2 id=&#34;the-tricky-parts&#34;&gt;The tricky parts&lt;/h2&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1502.03167&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
