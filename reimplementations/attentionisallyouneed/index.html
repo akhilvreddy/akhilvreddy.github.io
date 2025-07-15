@@ -7,7 +7,9 @@
 <meta name="robots" content="index, follow">
 <title>Attention Is All You Need (Vaswani et al. - 2017) | Akhil’s Blog</title>
 <meta name="keywords" content="">
-<meta name="description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+<meta name="description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+
+Implementing this paper is something I&rsquo;ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it talk like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in /transformer: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.">
 <meta name="author" content="PyTorch">
 <link rel="canonical" href="https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -58,7 +60,8 @@
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/">
   <meta property="og:site_name" content="Akhil’s Blog">
   <meta property="og:title" content="Attention Is All You Need (Vaswani et al. - 2017)">
-  <meta property="og:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+  <meta property="og:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+Implementing this paper is something I’ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it talk like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in /transformer: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="reimplementations">
@@ -66,7 +69,9 @@
     <meta property="article:modified_time" content="2025-06-27T00:00:00+00:00">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Attention Is All You Need (Vaswani et al. - 2017)">
-<meta name="twitter:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+<meta name="twitter:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+
+Implementing this paper is something I&rsquo;ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it talk like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in /transformer: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.">
 
 
 <script type="application/ld+json">
@@ -95,12 +100,12 @@
   "@type": "BlogPosting",
   "headline": "Attention Is All You Need (Vaswani et al. - 2017)",
   "name": "Attention Is All You Need (Vaswani et al. - 2017)",
-  "description": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\n",
+  "description": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\nImplementing this paper is something I\u0026rsquo;ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it talk like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in /transformer: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.\n",
   "keywords": [
     
   ],
-  "articleBody": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\n",
-  "wordCount" : "14",
+  "articleBody": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\nImplementing this paper is something I’ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it talk like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in /transformer: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.\nOnce the model architecture was working and passing the pre-written test suite that I wrote, I trained it character-by-character on the Tiny Shakespeare dataset using a custom training loop. I didn’t want to get drowned in the mess of tokenization so that’s why I decided to just make every single character it’s own token. The model started to learn structure surprisingly fast: after a single epoch, it was generating proper names, punctuation, and even multi-line dialogue. The final loss dropped to 0.13 and the output looked like something straight out of a Shakespeare play. This whole repo was fun to build and actually helped me build serious intuition for how GPT-style models work under the hood.\n",
+  "wordCount" : "225",
   "inLanguage": "en",
   "datePublished": "2025-06-27T00:00:00Z",
   "dateModified": "2025-06-27T00:00:00Z",
@@ -230,11 +235,14 @@
     <h1 class="post-title entry-hint-parent">
       Attention Is All You Need (Vaswani et al. - 2017)
     </h1>
-    <div class="post-meta"><span title='2025-06-27 00:00:00 +0000 UTC'>June 27, 2025</span>&nbsp;·&nbsp;1 min&nbsp;·&nbsp;PyTorch
+    <div class="post-meta"><span title='2025-06-27 00:00:00 +0000 UTC'>June 27, 2025</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;PyTorch
 
 </div>
   </header> 
   <div class="post-content"><p><a href="https://arxiv.org/pdf/1706.03762">Here</a> is the original paper for reference. And <a href="https://github.com/akhilvreddy/transformers-reimplementation/tree/main">here</a> is the reimplementation in PyTorch.</p>
+<hr>
+<p>Implementing this paper is something I&rsquo;ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it <em>talk</em> like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in <code>/transformer</code>: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.</p>
+<p>Once the model architecture was working and passing the pre-written test suite that I wrote, I trained it character-by-character on the Tiny Shakespeare dataset using a custom training loop. I didn&rsquo;t want to get drowned in the mess of tokenization so that&rsquo;s why I decided to just make every single character it&rsquo;s own token. The model started to learn structure surprisingly fast: after a single epoch, it was generating proper names, punctuation, and even multi-line dialogue. The final loss dropped to 0.13 and the output looked like something straight out of a Shakespeare play. This whole repo was fun to build and actually helped me build serious intuition for how GPT-style models work under the hood.</p>
 
 
   </div>

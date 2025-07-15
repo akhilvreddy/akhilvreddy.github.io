@@ -7,7 +7,9 @@
 <meta name="robots" content="index, follow">
 <title>Adam: A Method for Stochastic Optimization (Kingma &amp; Ba - 2014) | Akhil’s Blog</title>
 <meta name="keywords" content="">
-<meta name="description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+<meta name="description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+
+Optimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it&rsquo;s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass Adam(model.parameters()) and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.">
 <meta name="author" content="PyTorch">
 <link rel="canonical" href="https://akhilvreddy.github.io/reimplementations/adam/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -58,7 +60,8 @@
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/reimplementations/adam/">
   <meta property="og:site_name" content="Akhil’s Blog">
   <meta property="og:title" content="Adam: A Method for Stochastic Optimization (Kingma & Ba - 2014)">
-  <meta property="og:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+  <meta property="og:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+Optimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it’s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass Adam(model.parameters()) and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="reimplementations">
@@ -66,7 +69,9 @@
     <meta property="article:modified_time" content="2025-07-07T00:00:00+00:00">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Adam: A Method for Stochastic Optimization (Kingma &amp; Ba - 2014)">
-<meta name="twitter:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+<meta name="twitter:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+
+Optimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it&rsquo;s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass Adam(model.parameters()) and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.">
 
 
 <script type="application/ld+json">
@@ -95,12 +100,12 @@
   "@type": "BlogPosting",
   "headline": "Adam: A Method for Stochastic Optimization (Kingma \u0026 Ba - 2014)",
   "name": "Adam: A Method for Stochastic Optimization (Kingma \u0026 Ba - 2014)",
-  "description": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\n",
+  "description": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\nOptimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it\u0026rsquo;s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass Adam(model.parameters()) and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.\n",
   "keywords": [
     
   ],
-  "articleBody": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\n",
-  "wordCount" : "14",
+  "articleBody": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\nOptimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it’s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass Adam(model.parameters()) and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.\nTo test it, I plugged it into a basic linear regression and then trained a tiny neural net on synthetic data. Watching the loss drop as expected was super satisfying because I knew exactly what was happening under the hood. This project gave me a solid understanding of how optimizers are actually implemented and why Adam works so well in practice, especially compared to vanilla SGD or momentum-based updates.\n",
+  "wordCount" : "178",
   "inLanguage": "en",
   "datePublished": "2025-07-07T00:00:00Z",
   "dateModified": "2025-07-07T00:00:00Z",
@@ -235,6 +240,9 @@
 </div>
   </header> 
   <div class="post-content"><p><a href="https://arxiv.org/pdf/1412.6980">Here</a> is the original paper for reference. And <a href="https://github.com/akhilvreddy/adam-reimplementation">here</a> is the reimplementation in PyTorch.</p>
+<hr>
+<p>Optimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it&rsquo;s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass <code>Adam(model.parameters())</code> and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.</p>
+<p>To test it, I plugged it into a basic linear regression and then trained a tiny neural net on synthetic data. Watching the loss drop as expected was super satisfying because I knew exactly what was happening under the hood. This project gave me a solid understanding of how optimizers are actually implemented and why Adam works so well in practice, especially compared to vanilla SGD or momentum-based updates.</p>
 
 
   </div>

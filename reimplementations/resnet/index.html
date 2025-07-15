@@ -7,7 +7,9 @@
 <meta name="robots" content="index, follow">
 <title>ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015) | Akhil’s Blog</title>
 <meta name="keywords" content="">
-<meta name="description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+<meta name="description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+
+ResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.">
 <meta name="author" content="PyTorch">
 <link rel="canonical" href="https://akhilvreddy.github.io/reimplementations/resnet/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.8fe10233a706bc87f2e08b3cf97b8bd4c0a80f10675a143675d59212121037c0.css" integrity="sha256-j&#43;ECM6cGvIfy4Is8&#43;XuL1MCoDxBnWhQ2ddWSEhIQN8A=" rel="preload stylesheet" as="style">
@@ -58,7 +60,8 @@
 </noscript><meta property="og:url" content="https://akhilvreddy.github.io/reimplementations/resnet/">
   <meta property="og:site_name" content="Akhil’s Blog">
   <meta property="og:title" content="ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015)">
-  <meta property="og:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+  <meta property="og:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+ResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.">
   <meta property="og:locale" content="en-us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="reimplementations">
@@ -66,7 +69,9 @@
     <meta property="article:modified_time" content="2025-07-12T00:00:00+00:00">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015)">
-<meta name="twitter:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.">
+<meta name="twitter:description" content="Here is the original paper for reference. And here is the reimplementation in PyTorch.
+
+ResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.">
 
 
 <script type="application/ld+json">
@@ -95,12 +100,12 @@
   "@type": "BlogPosting",
   "headline": "ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015)",
   "name": "ResNet: Deep Residual Learning for Image Recognition (He et al. - 2015)",
-  "description": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\n",
+  "description": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\nResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.\n",
   "keywords": [
     
   ],
-  "articleBody": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\n",
-  "wordCount" : "14",
+  "articleBody": "Here is the original paper for reference. And here is the reimplementation in PyTorch.\nResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.\nAfter building the architecture, I trained it on MNIST first. Once I saw that the model was training well on MNIST, I trained it my ResNet on CIFAR-10 using torchvision and ran some quick ablation checks. I could easily see that the residual connections make a massive difference in convergence speed and final accuracy. Writing the residual connections from scratch helped me internalize why deep networks used to struggle before skip connections became the norm.\nThe whole repo is structured so I can reuse the blocks in future CNN or vision transformer projects too.\n",
+  "wordCount" : "178",
   "inLanguage": "en",
   "datePublished": "2025-07-12T00:00:00Z",
   "dateModified": "2025-07-12T00:00:00Z",
@@ -235,6 +240,10 @@
 </div>
   </header> 
   <div class="post-content"><p><a href="https://arxiv.org/pdf/1512.03385">Here</a> is the original paper for reference. And <a href="https://github.com/akhilvreddy/resnet-reimplementation">here</a> is the reimplementation in PyTorch.</p>
+<hr>
+<p>ResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.</p>
+<p>After building the architecture, I trained it on MNIST first. Once I saw that the model was training well on MNIST, I trained it my ResNet on CIFAR-10 using torchvision and ran some quick ablation checks. I could easily see that the residual connections make a massive difference in convergence speed and final accuracy. Writing the residual connections from scratch helped me internalize why deep networks used to struggle before skip connections became the norm.</p>
+<p>The whole repo is structured so I can reuse the blocks in future CNN or vision transformer projects too.</p>
 
 
   </div>

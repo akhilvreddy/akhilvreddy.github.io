@@ -13,21 +13,27 @@
       <link>https://akhilvreddy.github.io/reimplementations/resnet/</link>
       <pubDate>Sat, 12 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/resnet/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1512.03385&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/resnet-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1512.03385&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/resnet-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;ResNet is one of those architectures that just works extremely well so I wanted to see what actually makes it work under the hood (specifically the residual connections). I reimplemented ResNet-18 and ResNet-50 in pure PyTorch, including the full residual block logic, downsampling with 1×1 convolutions, and identity shortcuts. I wanted everything to be modular, clean, and designed to mirror the original paper closely while still being testable and readable.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Adam: A Method for Stochastic Optimization (Kingma &amp; Ba - 2014)</title>
       <link>https://akhilvreddy.github.io/reimplementations/adam/</link>
       <pubDate>Mon, 07 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/adam/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1412.6980&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/adam-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1412.6980&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/adam-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Optimizers are the heart of everything in deep learning and I knew how the math works behind them but I never implemented one from scratch. I wanted to do Adam because it&amp;rsquo;s my most favorite optimizer and I wanted to really understand how it works under the hood, not just pass &lt;code&gt;Adam(model.parameters())&lt;/code&gt; and move on. I reimplemented the optimizer from scratch using pure PyTorch by tracking moving averages for the first and second moments (m and v), bias correction, learning rate scheduling, and weight decay. Everything was done without relying on PyTorch’s built-in optimizer classes.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Attention Is All You Need (Vaswani et al. - 2017)</title>
       <link>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</link>
       <pubDate>Fri, 27 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1706.03762&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/transformers-reimplementation/tree/main&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1706.03762&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/transformers-reimplementation/tree/main&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Implementing this paper is something I&amp;rsquo;ve wanted to do for a while and after implementing LayerNorm and Adam I started to feel more comfortable with my PyTorch skills. I first implemented a full on encoder/decoder model but then decided that I actually wanted to make it &lt;em&gt;talk&lt;/em&gt; like ChatGPT so I switched the implementation to the full decoder-only transformer architecture from scratch (from token embeddings to multi-head self-attention to the output projection). Everything is structured in &lt;code&gt;/transformer&lt;/code&gt;: learned embeddings, sinusoidal positional encodings, residual connections, masking, batching, and MPS support to run fast on my Mac.&lt;/p&gt;</description>
     </item>
     <item>
       <title>LayerNorm (Ba, Kiros, and Hinton - 2016)</title>
