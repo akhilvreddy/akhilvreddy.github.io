@@ -13,35 +13,40 @@
       <link>https://akhilvreddy.github.io/reimplementations/resnet/</link>
       <pubDate>Sat, 12 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/resnet/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1512.03385&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1512.03385&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/resnet-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Adam: A Method for Stochastic Optimization (Kingma &amp; Ba - 2014)</title>
       <link>https://akhilvreddy.github.io/reimplementations/adam/</link>
       <pubDate>Mon, 07 Jul 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/adam/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1412.6980&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1412.6980&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/adam-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>Attention Is All You Need (Vaswani et al. - 2017)</title>
       <link>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</link>
       <pubDate>Fri, 27 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/attentionisallyouneed/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1706.03762&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1706.03762&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/transformers-reimplementation/tree/main&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
     </item>
     <item>
       <title>LayerNorm (Ba, Kiros, and Hinton - 2016)</title>
       <link>https://akhilvreddy.github.io/reimplementations/layernorm/</link>
       <pubDate>Sun, 15 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/layernorm/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1607.06450&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1607.06450&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/layernorm-reimplementation/tree/main&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;In my opinion, LayerNorm was easier to implement than BatchNorm because it&amp;rsquo;s basically the same idea, just applied in a different dimension. Unlike BatchNorm, we don&amp;rsquo;t have to keep track of batch-level statistics in training or running statistics in eval, which helps reduce a lot of overhead. I liked how LayerNorm is fully independent of external hyperparams (like batch size) making it super simple to add in at any layer.
+I implemented the &lt;code&gt;__init__&lt;/code&gt; method and the forward pass (just stuck with &lt;code&gt;loss.backward()&lt;/code&gt;). Once I understood that you&amp;rsquo;re just normalizing all features within a single sample, and optionally learning a scale and shift (just like batchnorm), I was able to see how it is really working. Writing it from scratch helped me understand why it helps with stability and training speed, and why it shows up in every transformer or modern deep learning model.&lt;/p&gt;</description>
     </item>
     <item>
       <title>BatchNorm (Ioffe &amp; Szegedy - 2015)</title>
       <link>https://akhilvreddy.github.io/reimplementations/batchnorm/</link>
       <pubDate>Tue, 10 Jun 2025 00:00:00 +0000</pubDate>
       <guid>https://akhilvreddy.github.io/reimplementations/batchnorm/</guid>
-      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1502.03167&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;</description>
+      <description>&lt;p&gt;&lt;a href=&#34;https://arxiv.org/pdf/1502.03167&#34;&gt;Here&lt;/a&gt; is the original paper for reference. And &lt;a href=&#34;https://github.com/akhilvreddy/batchnorm-reimplementation&#34;&gt;here&lt;/a&gt; is the reimplementation in PyTorch.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Honestly BatchNorm wasn’t as complicated to implement as I expected. I implemented the &lt;code&gt;__init__&lt;/code&gt; method and the forward pass (just stuck with &lt;code&gt;loss.backward&lt;/code&gt;). Once I understood that you normalize each feature across the batch, then optionally learn a scale and shift, it was pretty straightforward. Writing it from scratch helped me understand why it helps with stability and training speed, and why it shows up in basically every model.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>
